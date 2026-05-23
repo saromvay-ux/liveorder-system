@@ -12,7 +12,268 @@
       --border: #1e1e2e;
       --accent: #00e5a0;
       --accent2: #0066ff;
+      --text: #f0f0f5;<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LiveOrder System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: #1e1e2e;
+      --accent: #00e5a0;
       --text: #f0f0f5;
+      --muted: #7070a0;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 16px; line-height: 1.7; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 2.5rem;
+      background: rgba(10,10,15,0.85); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: var(--text); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+    .logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 1.5rem; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* PAGES */
+    .page { display: none; padding-top: 80px; min-height: 100vh; }
+    .page.active { display: block; }
+
+    /* FULLSCREEN APP PAGE */
+    #app-fullscreen {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: #f7f6f3;
+    }
+    #app-fullscreen.active { display: block; }
+    #app-fullscreen iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .app-back-btn {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      z-index: 1000;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.82rem;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.2s;
+    }
+    .app-back-btn.active { display: flex; }
+    .app-back-btn:hover { background: rgba(0,0,0,0.9); }
+
+    /* HOME */
+    .hero { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 6rem 2rem 4rem; position: relative; overflow: hidden; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,229,160,0.08) 0%, transparent 70%); pointer-events: none; }
+    .badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.25); color: var(--accent); font-size: 0.78rem; font-weight: 500; letter-spacing: 0.05em; padding: 0.35rem 0.9rem; border-radius: 99px; margin-bottom: 1.5rem; text-transform: uppercase; }
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.5rem, 6vw, 4.5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1.25rem; max-width: 800px; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .hero-sub { color: var(--muted); font-size: 1.1rem; max-width: 520px; margin-bottom: 2.5rem; }
+    .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .btn { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: #000; font-weight: 600; font-size: 0.95rem; padding: 0.75rem 1.75rem; border-radius: 8px; text-decoration: none; transition: opacity 0.2s, transform 0.2s; cursor: pointer; border: none; }
+    .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    .btn-outline:hover { background: rgba(0,229,160,0.1); }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; padding: 3rem 2.5rem 5rem; max-width: 1100px; margin: 0 auto; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; transition: border-color 0.25s; }
+    .card:hover { border-color: rgba(0,229,160,0.3); }
+    .card-icon { font-size: 1.8rem; margin-bottom: 0.9rem; }
+    .card h3 { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+
+    /* LEGAL */
+    .legal { max-width: 780px; margin: 0 auto; padding: 3.5rem 2rem 6rem; }
+    .legal h1 { font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800; margin-bottom: 0.4rem; }
+    .legal .updated { color: var(--muted); font-size: 0.85rem; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+    .legal h2 { font-family: 'Syne', sans-serif; font-size: 1.15rem; font-weight: 700; margin: 2rem 0 0.6rem; color: var(--accent); }
+    .legal p, .legal li { color: #c0c0d8; font-size: 0.95rem; margin-bottom: 0.75rem; }
+    .legal ul { padding-left: 1.4rem; }
+    .legal a { color: var(--accent); text-decoration: none; }
+
+    footer { border-top: 1px solid var(--border); text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<!-- Back button (shown only in app fullscreen mode) -->
+<button class="app-back-btn" id="backBtn" onclick="closeApp()">← Back to Website</button>
+
+<nav id="mainNav">
+  <div class="logo" onclick="show('home')">Live<span>Order</span></div>
+  <div class="nav-links">
+    <a href="#" onclick="show('home')">Home</a>
+    <a href="#" onclick="openApp()">App</a>
+    <a href="#" onclick="show('privacy')">Privacy Policy</a>
+    <a href="#" onclick="show('terms')">Terms of Service</a>
+  </div>
+</nav>
+
+<!-- FULLSCREEN APP -->
+<div id="app-fullscreen">
+  <iframe src="app.html" title="LiveOrder App"></iframe>
+</div>
+
+<!-- HOME PAGE -->
+<div id="home" class="page active">
+  <section class="hero">
+    <div class="badge"><div class="dot"></div> Live Selling Automation</div>
+    <h1>Sell Faster on<br/><em>Facebook Live</em></h1>
+    <p class="hero-sub">LiveOrder automates your Facebook Live orders — track stock, manage customers, and process orders in real time.</p>
+    <div class="btn-group">
+      <a class="btn" href="#" onclick="openApp()">🚀 Open App</a>
+      <a class="btn btn-outline" href="#" onclick="show('privacy')">Privacy Policy</a>
+    </div>
+  </section>
+  <div class="features">
+    <div class="card"><div class="card-icon">📦</div><h3>Stock Monitor</h3><p>Track your inventory in real time during live sessions. Get low stock alerts before you run out.</p></div>
+    <div class="card"><div class="card-icon">⚡</div><h3>Auto Order Processing</h3><p>Automatically detect orders from Facebook Live comments and process them instantly.</p></div>
+    <div class="card"><div class="card-icon">💬</div><h3>Customer Messaging</h3><p>Send automatic private messages to customers confirming their orders during live sessions.</p></div>
+    <div class="card"><div class="card-icon">📊</div><h3>Sales Dashboard</h3><p>Monitor orders, customers, and revenue from one clean dashboard built for live sellers.</p></div>
+  </div>
+</div>
+
+<!-- PRIVACY POLICY -->
+<div id="privacy" class="page">
+  <div class="legal">
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: May 23, 2026</p>
+    <p>LiveOrder System ("we", "our", or "us") operates the LiveOrder application. This Privacy Policy explains how we collect, use, and protect your information when you use our service.</p>
+    <h2>1. Information We Collect</h2>
+    <p>When you use LiveOrder, we may collect the following information:</p>
+    <ul>
+      <li>Facebook Page information and Page Access Token (to send messages on your behalf)</li>
+      <li>Customer names and Facebook User IDs (PSID) from your Facebook Live comments</li>
+      <li>Order information including product codes and quantities</li>
+      <li>Basic account information you provide when setting up the app</li>
+    </ul>
+    <h2>2. How We Use Your Information</h2>
+    <ul>
+      <li>Process and manage orders placed during your Facebook Live sessions</li>
+      <li>Send automated private messages to customers confirming their orders</li>
+      <li>Monitor and display inventory levels in real time</li>
+      <li>Generate order reports and sales summaries for your business</li>
+    </ul>
+    <h2>3. Facebook Data and Messenger Platform</h2>
+    <p>LiveOrder integrates with the Facebook Messenger Platform. We access your Facebook Page data and send messages through the official Meta Graph API. We use the <strong>pages_messaging</strong> permission solely to send order confirmation messages to customers who interact with your Facebook Live sessions.</p>
+    <p>We do not sell, share, or use Facebook user data for advertising or any purpose beyond the core functionality of processing live selling orders.</p>
+    <h2>4. Data Storage and Security</h2>
+    <p>Customer data is stored securely on our servers. We implement industry-standard security measures to protect your data from unauthorized access, alteration, or disclosure.</p>
+    <h2>5. Data Sharing</h2>
+    <p>We do not sell or share your personal data or your customers' data with any third parties except as required by law or as necessary to operate our service.</p>
+    <h2>6. Your Rights</h2>
+    <ul>
+      <li>Access the data we hold about you</li>
+      <li>Request deletion of your data at any time</li>
+      <li>Disconnect your Facebook Page from our app at any time</li>
+    </ul>
+    <h2>7. Cookies</h2>
+    <p>LiveOrder may use essential cookies to maintain your session and preferences. We do not use tracking or advertising cookies.</p>
+    <h2>8. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify you by updating the date at the top of this page.</p>
+    <h2>9. Contact Us</h2>
+    <p>Email: <a href="mailto:saromvay@gmail.com">saromvay@gmail.com</a></p>
+  </div>
+</div>
+
+<!-- TERMS OF SERVICE -->
+<div id="terms" class="page">
+  <div class="legal">
+    <h1>Terms of Service</h1>
+    <p class="updated">Last updated: May 23, 2026</p>
+    <p>By using LiveOrder System ("the Service"), you agree to be bound by these Terms of Service.</p>
+    <h2>1. Acceptance of Terms</h2>
+    <p>By accessing or using LiveOrder, you confirm that you accept these Terms of Service and agree to comply with them.</p>
+    <h2>2. Description of Service</h2>
+    <ul>
+      <li>Real-time stock monitoring during live sessions</li>
+      <li>Automatic order detection from Facebook Live comments</li>
+      <li>Automated order confirmation messages via Facebook Messenger</li>
+      <li>Sales and order management dashboard</li>
+    </ul>
+    <h2>3. Facebook Platform Compliance</h2>
+    <p>You agree to use LiveOrder in compliance with Meta's Platform Terms and Community Standards. LiveOrder only sends messages to users who have interacted with your Facebook Page or Live session.</p>
+    <h2>4. User Responsibilities</h2>
+    <ul>
+      <li>Provide accurate information when setting up your account</li>
+      <li>Use the service only for legitimate live selling activities</li>
+      <li>Not use the service to send spam or unsolicited messages</li>
+      <li>Comply with all applicable laws and regulations</li>
+      <li>Keep your Page Access Token secure</li>
+    </ul>
+    <h2>5. Prohibited Uses</h2>
+    <ul>
+      <li>Send spam or harassing messages</li>
+      <li>Violate any person's privacy or rights</li>
+      <li>Engage in fraudulent or deceptive practices</li>
+      <li>Violate Meta's Platform Policies or Terms of Service</li>
+    </ul>
+    <h2>6. Disclaimer of Warranties</h2>
+    <p>LiveOrder is provided "as is" without warranties of any kind. Facebook API availability and policy changes may affect service functionality.</p>
+    <h2>7. Limitation of Liability</h2>
+    <p>LiveOrder System shall not be liable for any indirect, incidental, or consequential damages arising from your use of the service.</p>
+    <h2>8. Contact Us</h2>
+    <p>Email: <a href="mailto:saromvay@gmail.com">saromvay@gmail.com</a></p>
+  </div>
+</div>
+
+<footer id="mainFooter">
+  <p>© 2026 LiveOrder System · <a href="mailto:saromvay@gmail.com">saromvay@gmail.com</a> · Cambodia</p>
+</footer>
+
+<script>
+  function show(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(page).classList.add('active');
+    window.scrollTo(0, 0);
+    if(event) event.preventDefault();
+  }
+
+  function openApp() {
+    document.getElementById('app-fullscreen').classList.add('active');
+    document.getElementById('backBtn').classList.add('active');
+    document.getElementById('mainNav').style.display = 'none';
+    document.getElementById('mainFooter').style.display = 'none';
+    document.body.style.overflow = 'hidden';
+    if(event) event.preventDefault();
+  }
+
+  function closeApp() {
+    document.getElementById('app-fullscreen').classList.remove('active');
+    document.getElementById('backBtn').classList.remove('active');
+    document.getElementById('mainNav').style.display = '';
+    document.getElementById('mainFooter').style.display = '';
+    document.body.style.overflow = '';
+  }
+</script>
+</body>
+</html>
+
       --muted: #7070a0;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
