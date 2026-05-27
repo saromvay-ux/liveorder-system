@@ -930,11 +930,11 @@ window.printInvoice = userName => {
     
     <div class="info-row"><span class="label">ចំនួន</span><span class="value-text">${totalQty} ខោ/អាវ</span></div>
     <hr class="divider"/>
-    ${deliv > 0 ? `<div class="info-row"><span class="label">🚚 ដឹក</span><span class="value-text">$${deliv.toFixed(2)}</span></div>` : ''}
+    ${deliv > 0 ? `<div class="info-row"><span class="label">🚚 ថ្លៃសេវាដឹក</span><span class="value-text">$${deliv.toFixed(2)}</span></div>` : ''}
     <div class="total-row"><span>💵 សរុប $</span><span>$${total.toFixed(2)}</span></div>
     <div class="total-riel"><span>💵 សរុប ៛</span><span>${totalRiel.toLocaleString()}៛</span></div>
     <hr class="divider2"/>
-    <div class="thank-you">សូមអរគុណ!</div>
+    <div class="thank-you">🎀សូមអរគុណ!🎀</div>
   `;
 
   const win = window.open('', '_blank', 'width=400,height=600');
