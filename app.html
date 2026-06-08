@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LiveOrder System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Geist+Mono:wght@400;500;600&family=Geist:wght@400;500;600&family=Noto+Sans+Khmer:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#f7f6f3;--white:#ffffff;--surface:#fafaf8;--border:#e8e8e2;--accent:#dc2626;--accent2:#b91c1c;--accent-soft:#fef2f2;--text:#18181b;--text2:#52525b;--muted:#a1a1aa;--green:#16a34a;--green-bg:#f0fdf4;--green-border:#bbf7d0;--blue:#2563eb;--blue-bg:#eff6ff;--orange:#d97706;--orange-bg:#fffbeb;--purple:#7c3aed;--purple-bg:#f5f3ff;--purple-border:#ddd6fe;--shadow-sm:0 1px 3px rgba(0,0,0,0.06);--shadow:0 4px 12px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.04);--shadow-lg:0 12px 32px rgba(0,0,0,0.09);--radius:12px;--radius-sm:7px}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:"Geist",sans-serif;min-height:100vh}
+
+    /* LOGIN */
+    #loginScreen{display:none;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#18181b 0%,#27272a 100%)}
+    .login-box{background:var(--white);border-radius:16px;padding:40px 36px;width:380px;box-shadow:0 24px 48px rgba(0,0,0,0.3)}
+    .login-logo{font-family:"Instrument Serif",serif;font-size:1.8rem;color:var(--text);display:flex;align-items:center;gap:8px;margin-bottom:6px}
+    .login-logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse-dot 2s infinite}
+    @keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,0.4)}50%{box-shadow:0 0 0 5px rgba(220,38,38,0)}}
+    .login-sub{font-family:"Noto Sans Khmer",sans-serif;font-size:0.78rem;color:var(--muted);margin-bottom:28px}
+    .login-field{margin-bottom:16px}
+    .login-field label{display:block;font-family:"Geist Mono",monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px}
+    .login-field input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-family:"Geist Mono",monospace;font-size:0.88rem;color:var(--text);outline:none;transition:border-color 0.2s}
+    .login-field input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(220,38,38,0.08)}
+    .login-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:12px;font-family:"Geist",sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:8px}
+    .login-btn:hover{background:var(--accent2)}
+    .login-err{background:var(--accent-soft);border:1px solid #fecaca;border-radius:var(--radius-sm);padding:8px 12px;font-family:"Geist Mono",monospace;font-size:0.72rem;color:var(--accent);margin-top:12px;display:none}
+
+    /* EXPIRED */
+    #expiredScreen{display:none;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#18181b 0%,#27272a 100%)}
+    .expired-box{background:var(--white);border-radius:16px;padding:40px 36px;width:420px;box-shadow:0 24px 48px rgba(0,0,0,0.3);text-align:center}
+    .expired-icon{font-size:3.5rem;margin-bottom:16px}
+    .expired-title{font-family:"Instrument Serif",serif;font-size:1.6rem;color:var(--accent);margin-bottom:8px}
+    .expired-title-kh{font-family:"Noto Sans Khmer",sans-serif;font-size:1.1rem;color:var(--accent);margin-bottom:12px}
+    .expired-msg{color:var(--text2);font-size:0.88rem;margin-bottom:8px;line-height:1.6}
+    .expired-msg-kh{font-family:"Noto Sans Khmer",sans-serif;color:var(--muted);font-size:0.82rem;margin-bottom:24px;line-height:1.8}
+    .expired-contact{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-family:"Geist Mono",monospace;font-size:0.8rem;color:var(--text2)}
+
+    /* WARNING BANNER */
+    #warningBanner{display:none;background:#fef3c7;border-bottom:2px solid #f59e0b;padding:8px 20px;align-items:center;gap:10px;font-family:"Geist Mono",monospace;font-size:0.72rem;color:#92400e;position:sticky;top:52px;z-index:99}
+    #warningBanner.show{display:flex}
+
+    /* NAV */
+    .topnav{background:var(--white);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;height:52px;box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:100;gap:16px}
+    .logo{font-family:"Instrument Serif",serif;font-size:1.4rem;color:var(--text);display:flex;align-items:center;gap:7px;white-space:nowrap}
+    .logo-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse-dot 2s infinite}
+    .nav-tabs{display:flex;gap:2px;margin-left:20px}
+    .nav-tab{display:flex;align-items:center;gap:6px;padding:6px 14px;border-radius:var(--radius-sm);font-family:"Geist",sans-serif;font-size:0.8rem;font-weight:500;cursor:pointer;color:var(--muted);border:none;background:transparent;transition:all 0.2s}
+    .nav-tab:hover{color:var(--text);background:var(--surface)}.nav-tab.active{color:var(--accent);background:var(--accent-soft)}
+    .nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+    .conn-dot{width:6px;height:6px;border-radius:50%;background:#d1d5db}.conn-dot.ok{background:var(--green);box-shadow:0 0 0 2px rgba(22,163,74,0.2)}
+    .conn-label{font-family:"Geist Mono",monospace;font-size:0.65rem;color:var(--muted)}
+    .conn-wrap{display:flex;align-items:center;gap:5px}
+    .hstat{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-family:"Geist Mono",monospace;font-size:0.68rem;color:var(--text2);display:flex;align-items:center;gap:4px}
+    .hstat strong{color:var(--text)}
+    .user-pill{background:var(--accent-soft);border:1px solid #fecaca;border-radius:20px;padding:3px 10px;font-family:"Geist Mono",monospace;font-size:0.68rem;color:var(--accent);cursor:pointer}
+
+    /* PAGES */
+    .page{display:none}.page.active{display:block}
+
+    /* DASHBOARD */
+    .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 20px;background:var(--bg);border-bottom:1px solid var(--border)}
+    .stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:8px}
+    .stat-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0}
+    .stat-icon.red{background:var(--accent-soft)}.stat-icon.green{background:var(--green-bg)}.stat-icon.blue{background:var(--blue-bg)}.stat-icon.orange{background:var(--orange-bg)}
+    .stat-val{font-family:"Instrument Serif",serif;font-size:1.3rem;color:var(--text);line-height:1}
+    .stat-lbl{font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;font-family:"Geist Mono",monospace}
+    .dash-layout{display:grid;grid-template-columns:240px 1fr}
+    .stock-panel{background:var(--white);border-right:1px solid var(--border);position:sticky;top:52px;height:calc(100vh - 52px - 62px);overflow-y:auto;display:flex;flex-direction:column}
+    .panel-header{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface);display:flex;align-items:center;gap:8px}
+    .panel-title{font-weight:600;font-size:0.8rem;color:var(--text);flex:1}
+    .stock-count{font-family:"Geist Mono",monospace;font-size:0.65rem;color:var(--muted)}
+    .stock-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:5px}
+    .stock-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 9px}
+    .stock-item.sold-out{border-color:#fecaca;background:var(--accent-soft)}.stock-item.low-stock{border-color:#fde68a;background:var(--orange-bg)}
+    .stock-item-header{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+    .code-tag-sm{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);border-radius:4px;padding:1px 5px;font-family:"Geist Mono",monospace;font-size:0.68rem;font-weight:600}
+    .price-tag-sm{font-family:"Geist Mono",monospace;font-size:0.65rem;color:var(--green);margin-left:auto}
+    .status-badge{font-family:"Geist Mono",monospace;font-size:0.58rem;padding:1px 5px;border-radius:3px;font-weight:600}
+    .badge-ok{background:var(--green-bg);color:var(--green)}.badge-low{background:var(--orange-bg);color:var(--orange)}.badge-out{background:var(--accent-soft);color:var(--accent)}
+    .stock-bar-wrap{display:flex;align-items:center;gap:5px}
+    .stock-bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+    .stock-fill{height:100%;border-radius:2px;transition:width 0.4s}
+    .stock-numbers{font-family:"Geist Mono",monospace;font-size:0.62rem;color:var(--muted);white-space:nowrap}
+    .stock-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 12px;gap:6px;color:var(--muted);font-family:"Geist Mono",monospace;font-size:0.7rem;text-align:center}
+    .orders-panel{display:flex;flex-direction:column}
+    .toolbar{padding:8px 14px;border-bottom:1px solid var(--border);background:var(--white);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .search-wrap{position:relative}
+    .search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:0.72rem}
+    .search-input{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px 6px 24px;font-family:"Geist",sans-serif;font-size:0.78rem;color:var(--text);outline:none;width:170px}
+    .search-input:focus{border-color:var(--accent)}.search-input::placeholder{color:var(--muted)}
+    .date-btn{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 9px;font-family:"Geist Mono",monospace;font-size:0.68rem;color:var(--text2);cursor:pointer;transition:all 0.2s}
+    .date-btn:hover{border-color:var(--accent);color:var(--accent)}.date-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .date-picker{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:5px 7px;font-family:"Geist Mono",monospace;font-size:0.68rem;color:var(--text);outline:none}
+    .btn{border-radius:var(--radius-sm);padding:6px 12px;font-family:"Geist",sans-serif;font-size:0.78rem;font-weight:500;cursor:pointer;transition:all 0.2s;border:none;white-space:nowrap;display:flex;align-items:center;gap:5px;box-shadow:var(--shadow-sm)}
+    .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2)}
+    .btn-danger{background:var(--white);color:var(--accent);border:1px solid #fecaca!important}.btn-danger:hover{background:var(--accent-soft)}
+    .btn-export{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)!important}.btn-export:hover{background:var(--green);color:#fff}
+    .btn-ghost{background:var(--white);color:var(--text2);border:1px solid var(--border)!important}
+    .orders-scroll{padding:10px;display:flex;flex-direction:column;gap:8px}
+    .user-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .user-header{padding:9px 14px;display:flex;align-items:center;gap:8px;background:var(--surface);border-bottom:1px solid var(--border)}
+    .user-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent) 0%,#f97316 100%);color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Instrument Serif",serif;font-size:0.9rem;flex-shrink:0;box-shadow:0 2px 5px rgba(220,38,38,0.25)}
+    .user-info{flex:1}.user-name{font-weight:600;font-size:0.82rem;color:var(--text)}
+    .user-meta{font-family:"Geist Mono",monospace;font-size:0.62rem;color:var(--muted);margin-top:1px}
+    .btn-print-sm{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe;border-radius:5px;padding:4px 10px;font-family:"Geist",sans-serif;font-size:0.68rem;font-weight:500;cursor:pointer;transition:all 0.2s}
+    .btn-print-sm:hover{background:var(--blue);color:#fff}
+    .contact-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px 14px;background:#fafaf8;border-bottom:1px solid var(--border)}
+    .contact-field{display:flex;align-items:center;gap:5px;background:var(--white);border:1px solid var(--border);border-radius:5px;padding:4px 8px}
+    .contact-field:focus-within{border-color:var(--accent)}
+    .contact-icon{font-size:0.65rem;color:var(--muted);flex-shrink:0}
+    .contact-input{border:none;outline:none;font-family:"Geist Mono",monospace;font-size:0.7rem;color:var(--text);background:transparent;width:100%}
+    .contact-input::placeholder{color:var(--muted)}
+    .order-thead{display:grid;grid-template-columns:58px 62px 68px 1fr 55px 65px 24px;padding:4px 14px;gap:5px;background:var(--bg);border-bottom:1px solid var(--border)}
+    .th{font-family:"Geist Mono",monospace;font-size:0.58rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted)}
+    .order-row{display:grid;grid-template-columns:58px 62px 68px 1fr 55px 65px 24px;padding:5px 14px;gap:5px;align-items:center;border-bottom:1px solid var(--border);transition:background 0.15s}
+    .order-row:hover{background:var(--surface)}.order-row:last-of-type{border-bottom:none}
+    .code-tag{background:var(--orange-bg);color:var(--orange);border:1px solid #fde68a;border-radius:4px;padding:1px 5px;font-family:"Geist Mono",monospace;font-size:0.66rem;font-weight:500;display:inline-block}
+    .code-tag.purple{background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border)}
+    .date-val,.time-val{font-family:"Geist Mono",monospace;font-size:0.63rem;color:var(--muted)}
+    .total-val{font-family:"Geist Mono",monospace;font-size:0.75rem;font-weight:600;color:var(--green)}
+    .edit-input{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:2px 5px;font-family:"Geist Mono",monospace;font-size:0.68rem;color:var(--text);width:100%;outline:none}
+    .edit-input:focus{border-color:var(--accent)}
+    .btn-del-row{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:0.72rem;padding:2px 4px;border-radius:3px;transition:all 0.15s}
+    .btn-del-row:hover{color:var(--accent);background:var(--accent-soft)}
+    .delivery-row{display:flex;align-items:center;gap:8px;padding:5px 14px;background:var(--blue-bg);border-top:1px dashed #bfdbfe}
+    .delivery-label{font-family:"Geist Mono",monospace;font-size:0.68rem;color:var(--blue);flex:1}
+    .delivery-input{background:var(--white);border:1px solid #bfdbfe;border-radius:4px;padding:2px 6px;font-family:"Geist Mono",monospace;font-size:0.7rem;color:var(--text);width:65px;outline:none}
+    .delivery-total{font-family:"Geist Mono",monospace;font-size:0.7rem;color:var(--blue);font-weight:600}
+    .subtotal-row{display:flex;align-items:center;padding:7px 14px;background:var(--surface);border-top:1px solid var(--border)}
+    .subtotal-label{font-family:"Geist Mono",monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;flex:1}
+    .subtotal-val{font-family:"Instrument Serif",serif;font-size:1rem;color:var(--text)}
+    .grand-total{background:var(--text);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;box-shadow:var(--shadow-lg);margin:0 10px 10px}
+    .gt-label{font-family:"Geist Mono",monospace;font-size:0.65rem;color:#71717a;text-transform:uppercase;letter-spacing:1px;flex:1}
+    .gt-val{font-family:"Instrument Serif",serif;font-size:1.4rem;color:#fff}
+    .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:10px;color:var(--muted);font-family:"Geist Mono",monospace;font-size:0.75rem;text-align:center}
+    .empty-icon{font-size:2.5rem;opacity:0.4}
+
+    /* ADMIN STYLES */
+    .admin-container{max-width:860px;margin:0 auto;padding:20px 24px 40px}
+    .sub-tabs{display:flex;gap:4px;margin-bottom:0}
+    .sub-tab{padding:9px 18px;border-radius:var(--radius-sm) var(--radius-sm) 0 0;border:1px solid var(--border);border-bottom:none;background:var(--surface);color:var(--muted);font-family:"Geist",sans-serif;font-size:0.8rem;font-weight:500;cursor:pointer;transition:all 0.2s}
+    .sub-tab.active{background:var(--white);color:var(--text)}
+    .sub-tab.active.range{border-top:2px solid var(--orange)}.sub-tab.active.stock{border-top:2px solid var(--purple)}.sub-tab.active.profile{border-top:2px solid var(--blue)}
+    .section-card{background:var(--white);border:1px solid var(--border);border-radius:0 var(--radius) var(--radius) var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px}
+    .section-header{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface)}
+    .section-title{font-weight:600;font-size:0.88rem;color:var(--text)}
+    .section-subtitle{font-family:"Geist Mono",monospace;font-size:0.68rem;color:var(--muted);margin-top:2px}
+    .form-body{padding:18px}
+    .form-row{display:grid;gap:10px;align-items:end}
+    .form-row.range-row{grid-template-columns:1fr 1fr 1fr auto}.form-row.stock-row{grid-template-columns:1fr 1fr 1fr auto}
+    .form-group{display:flex;flex-direction:column;gap:5px}
+    .form-group label{font-family:"Geist Mono",monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+    .form-group input{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;font-family:"Geist Mono",monospace;font-size:0.85rem;color:var(--text);outline:none;transition:border-color 0.2s}
+    .form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(220,38,38,0.08)}
+    .form-group input::placeholder{color:var(--muted)}
+    .btn-add{padding:8px 18px;border-radius:var(--radius-sm);border:none;font-family:"Geist",sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap;box-shadow:var(--shadow-sm)}
+    .btn-add.orange{background:var(--orange);color:#fff}.btn-add.orange:hover{background:#b45309}
+    .btn-add.purple{background:var(--purple);color:#fff}.btn-add.purple:hover{background:#6d28d9}
+    .btn-add.green{background:var(--green);color:#fff}
+    .admin-table{width:100%;border-collapse:collapse}
+    .admin-table thead{background:var(--bg);border-bottom:2px solid var(--border)}
+    .admin-table thead th{font-family:"Geist Mono",monospace;font-size:0.62rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);padding:9px 14px;text-align:left}
+    .admin-table tbody tr{border-bottom:1px solid var(--border);transition:background 0.15s}
+    .admin-table tbody tr:last-child{border-bottom:none}.admin-table tbody tr:hover{background:var(--surface)}
+    .admin-table tbody td{padding:10px 14px;font-family:"Geist Mono",monospace;font-size:0.82rem}
+    .tag-orange{background:var(--orange-bg);color:var(--orange);border:1px solid #fde68a;border-radius:5px;padding:2px 7px;font-size:0.75rem;font-weight:500}
+    .tag-purple{background:var(--purple-bg);color:var(--purple);border:1px solid var(--purple-border);border-radius:5px;padding:2px 7px;font-size:0.75rem;font-weight:500}
+    .tag-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border);border-radius:5px;padding:2px 7px;font-size:0.75rem;font-weight:500}
+    .tag-red{background:var(--accent-soft);color:var(--accent);border:1px solid #fecaca;border-radius:5px;padding:2px 7px;font-size:0.75rem;font-weight:500}
+    .tag-blue{background:var(--blue-bg);color:var(--blue);border:1px solid #bfdbfe;border-radius:5px;padding:2px 7px;font-size:0.75rem;font-weight:500}
+    .btn-del{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:5px;padding:3px 9px;font-family:"Geist Mono",monospace;font-size:0.68rem;cursor:pointer;transition:all 0.2s}
+    .btn-del:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+    .btn-edit{background:var(--blue-bg);border:1px solid #bfdbfe;color:var(--blue);border-radius:5px;padding:3px 9px;font-family:"Geist Mono",monospace;font-size:0.68rem;cursor:pointer;transition:all 0.2s;margin-right:4px}
+    .btn-edit:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+    .empty-row td{text-align:center;color:var(--muted);padding:32px;font-size:0.78rem;font-family:"Geist Mono",monospace}
+    .info-box{background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:9px 13px;font-family:"Geist Mono",monospace;font-size:0.7rem;color:var(--blue);margin-bottom:14px;line-height:1.6}
+    .admin-sub-content{display:none}.admin-sub-content.active{display:block}
+    .logo-preview{width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--border);display:none}
+    .logo-preview.show{display:block}
+    .upload-area{border:2px dashed var(--border);border-radius:var(--radius-sm);padding:20px;text-align:center;cursor:pointer;transition:border-color 0.2s;font-family:"Geist Mono",monospace;font-size:0.78rem;color:var(--muted)}
+    .upload-area:hover{border-color:var(--blue);color:var(--blue)}
+
+    /* SETTINGS */
+    .settings-container{max-width:760px;margin:0 auto;padding:20px 24px 40px}
+    .settings-card{background:var(--white);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin-bottom:20px}
+    .settings-title{font-family:"Instrument Serif",serif;font-size:1.1rem;color:var(--text);margin-bottom:18px}
+    .settings-form .field{margin-bottom:14px}
+    .settings-form label{display:block;font-family:"Geist Mono",monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px}
+    .settings-form input,.settings-form select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;font-family:"Geist Mono",monospace;font-size:0.85rem;color:var(--text);outline:none;transition:border-color 0.2s}
+    .settings-form input:focus,.settings-form select:focus{border-color:var(--accent)}
+    .settings-form input::placeholder{color:var(--muted)}
+    .token-wrap{position:relative}.token-wrap input{padding-right:70px}
+    .btn-show{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:4px;padding:3px 9px;font-family:"Geist Mono",monospace;font-size:0.65rem;cursor:pointer}
+    .btn-row{display:flex;gap:10px;margin-top:20px}
+    .btn-test-conn{background:transparent;color:var(--blue);border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:10px 24px;font-family:"Geist",sans-serif;font-size:0.82rem;cursor:pointer;transition:all 0.2s}
+    .btn-test-conn:hover{background:var(--blue);color:#fff}
+    .status-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px;display:none}
+    .status-card.show{display:block}.status-card.ok{border-left:3px solid var(--green)}.status-card.fail{border-left:3px solid var(--accent)}.status-card.testing{border-left:3px solid var(--orange)}
+    .status-card-title{font-family:"Geist",sans-serif;font-weight:600;font-size:0.85rem;margin-bottom:10px}
+    .status-card.ok .status-card-title{color:var(--green)}.status-card.fail .status-card-title{color:var(--accent)}.status-card.testing .status-card-title{color:var(--orange);animation:pulse 1s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+    .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .info-label{font-family:"Geist Mono",monospace;font-size:0.62rem;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+    .info-value{font-family:"Geist Mono",monospace;font-size:0.8rem;color:var(--text)}.info-value.green{color:var(--green)}.info-value.red{color:var(--accent)}
+    .profile-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;transition:border-color 0.2s}
+    .profile-item.active-profile{border-color:var(--green);background:var(--green-bg)}
+    .profile-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:"Instrument Serif",serif;font-size:1rem;flex-shrink:0}
+    .profile-name{font-family:"Geist",sans-serif;font-size:0.85rem;font-weight:600;color:var(--text)}
+    .profile-id{font-family:"Geist Mono",monospace;font-size:0.68rem;color:var(--muted);margin-top:2px}
+    .profile-badge{font-family:"Geist Mono",monospace;font-size:0.62rem;padding:2px 7px;border-radius:10px}
+    .badge-active-p{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+    .profile-actions{display:flex;gap:6px;margin-left:auto}
+    .btn-use{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-family:"Geist",sans-serif;font-size:0.72rem;font-weight:600;cursor:pointer}
+    .guide-box{background:var(--blue-bg);border:1px solid #bfdbfe;border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:18px}
+    .guide-title{font-family:"Geist Mono",monospace;font-size:0.72rem;color:var(--blue);font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px}
+    .guide-steps{font-family:"Geist Mono",monospace;font-size:0.72rem;color:var(--muted);line-height:2}
+    .guide-steps span{color:var(--text)}
+
+    /* SUPER ADMIN */
+    .sadmin-container{max-width:1000px;margin:0 auto;padding:20px 24px 40px}
+    .sadmin-header{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:16px 20px;background:linear-gradient(135deg,#18181b,#27272a);border-radius:var(--radius);color:#fff}
+    .sadmin-title{font-family:"Instrument Serif",serif;font-size:1.4rem;flex:1}
+    .sadmin-badge{background:var(--accent);color:#fff;border-radius:20px;padding:3px 12px;font-family:"Geist Mono",monospace;font-size:0.68rem;font-weight:600}
+    .plan-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+    .plan-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;text-align:center}
+    .plan-card-icon{font-size:1.8rem;margin-bottom:6px}
+    .plan-card-name{font-family:"Geist",sans-serif;font-weight:700;font-size:0.9rem;margin-bottom:4px}
+    .plan-card-days{font-family:"Geist Mono",monospace;font-size:0.75rem;color:var(--muted)}
+    .add-seller-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:20px}
+    .add-seller-header{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface)}
+    .add-seller-title{font-weight:600;font-size:0.88rem;color:var(--text)}
+    .add-seller-body{padding:18px}
+    .add-seller-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end}
+    .seller-disabled{opacity:0.5}
+
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center}
+    .modal-overlay.show{display:flex}
+    .modal{background:var(--white);border-radius:var(--radius);padding:24px;width:360px;box-shadow:var(--shadow-lg);border:1px solid var(--border)}
+    .modal-title{font-family:"Instrument Serif",serif;font-size:1.2rem;color:var(--text);margin-bottom:18px}
+    .modal .field{margin-bottom:12px}
+    .modal .field label{display:block;font-family:"Geist Mono",monospace;font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px}
+    .modal .field input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;font-family:"Geist Mono",monospace;font-size:0.85rem;color:var(--text);outline:none}
+    .modal .field input:focus{border-color:var(--accent)}
+    .modal-check{padding:7px 11px;border-radius:var(--radius-sm);font-family:"Geist Mono",monospace;font-size:0.72rem;margin-top:7px;display:none}
+    .modal-check.ok{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}.modal-check.err{background:var(--accent-soft);color:var(--accent);border:1px solid #fecaca}
+    .modal-btns{display:flex;gap:8px;margin-top:18px}
+    .modal-btns .btn{flex:1;justify-content:center}
+
+    /* LIVE */
+    .btn-live-mode{background:var(--green);color:#fff;border:none;border-radius:20px;padding:4px 12px;font-family:"Geist Mono",monospace;font-size:0.68rem;font-weight:600;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px}
+    .btn-live-mode:hover{opacity:0.85}
+    .btn-live-mode.on{background:var(--accent);animation:pulse-live 2s infinite}
+    @keyframes pulse-live{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,0.4)}50%{box-shadow:0 0 0 6px rgba(220,38,38,0)}}
+    .live-status-bar{background:var(--green-bg);border-bottom:1px solid var(--green-border);padding:6px 20px;display:none;align-items:center;gap:10px;font-family:"Geist Mono",monospace;font-size:0.72rem;color:var(--green)}
+    .live-status-bar.show{display:flex}
+
+    /* TOAST */
+    #toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:#fff;font-family:"Geist Mono",monospace;font-size:0.72rem;padding:9px 16px;border-radius:9px;opacity:0;pointer-events:none;transition:opacity 0.25s,transform 0.25s;transform:translateY(8px);z-index:999;box-shadow:var(--shadow-lg);max-width:320px}
+    #toast.show{opacity:1;transform:translateY(0)}
+    #toast.ok{background:var(--green)}#toast.warn{background:var(--orange)}#toast.err{background:var(--accent)}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<script>
+  // Show login screen immediately on page load
+  // Module script will handle session restore
+  document.addEventListener('DOMContentLoaded', function() {
+    var saved = sessionStorage.getItem('liveorder_session');
+    if (!saved) {
+      document.getElementById('loginScreen').style.display = 'flex';
+    }
+    // If saved session exists, module script will handle showing correct screen
+  });
+</script>
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo"><div class="login-logo-dot"></div>LiveOrder</div>
+    <div class="login-sub">វាយបញ្ចូលព័ត៌មានរបស់អ្នក / Enter your credentials</div>
+    <div class="login-field"><label>Username / ឈ្មោះអ្នកប្រើ</label><input type="text" id="loginUsername" placeholder="username" autocomplete="username"/></div>
+    <div class="login-field"><label>Password / លេខសម្ងាត់</label><input type="password" id="loginPassword" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password"/></div>
+    <button class="login-btn" onclick="doLogin()">🔐 Login / ចូល</button>
+    <div class="login-err" id="loginErr">❌ Username or password incorrect / ឈ្មោះ ឬ លេខសម្ងាត់មិនត្រូវ</div>
+  </div>
+</div>
+
+<!-- EXPIRED -->
+<div id="expiredScreen">
+  <div class="expired-box">
+    <div class="expired-icon">🔒</div>
+    <div class="expired-title">Account Expired</div>
+    <div class="expired-title-kh">គណនីផុតកំណត់</div>
+    <div class="expired-msg">Your subscription has expired. Please contact admin to renew.</div>
+    <div class="expired-msg-kh">ការជាវរបស់អ្នកផុតកំណត់ហើយ។ សូមទំនាក់ទំនងអ្នកគ្រប់គ្រង ដើម្បីបន្តប្រើប្រាស់។</div>
+    <div class="expired-contact">📞 Contact Admin to Renew / ទំនាក់ទំនង</div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+  <div id="warningBanner">
+    ⚠️ <span id="warningText"></span>
+    &nbsp;|&nbsp; <span style="font-family:Noto Sans Khmer,sans-serif" id="warningTextKh"></span>
+  </div>
+  <nav class="topnav">
+    <div class="logo"><div class="logo-dot"></div>LiveOrder</div>
+    <div class="nav-tabs" id="mainNavTabs">
+      <button class="nav-tab active" onclick="switchPage('dashboard',this)">📊 Dashboard</button>
+      <button class="nav-tab" onclick="switchPage('admin',this)">⚙️ Admin</button>
+      <button class="nav-tab" onclick="switchPage('settings',this)">🔧 Settings</button>
+    </div>
+    <div class="nav-right">
+      <div class="hstat">Orders <strong id="hOrders">0</strong></div>
+      <div class="hstat">Total <strong id="hTotal">$0</strong></div>
+      <button class="btn-live-mode" id="btnLiveMode" onclick="openLiveModeModal()">🔴 Start Live</button>
+      <div class="user-pill" onclick="doLogout()">👤 <span id="navUsername">user</span> · Logout</div>
+      <div class="conn-wrap"><div class="conn-dot" id="fbDot"></div><span class="conn-label" id="fbStatus">Firebase...</span></div>
+    </div>
+  </nav>
+  <div class="live-status-bar" id="liveStatusBar">
+    <span id="liveStatusText">🔴 Live Mode Active</span>
+    <button onclick="stopLiveMode()" style="background:var(--accent);color:#fff;border:none;border-radius:5px;padding:3px 10px;font-family:Geist Mono,monospace;font-size:0.65rem;cursor:pointer;margin-left:auto">⏹ Stop</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="stat-icon red">📦</div><div><div class="stat-val" id="statOrders">0</div><div class="stat-lbl">Orders</div></div></div>
+      <div class="stat-card"><div class="stat-icon blue">👥</div><div><div class="stat-val" id="statCustomers">0</div><div class="stat-lbl">Customers</div></div></div>
+      <div class="stat-card"><div class="stat-icon orange">🏷️</div><div><div class="stat-val" id="statCodes">0</div><div class="stat-lbl">Codes</div></div></div>
+      <div class="stat-card" style="border-color:var(--green-border)"><div class="stat-icon green">💰</div><div><div class="stat-val" id="statRevenue" style="color:var(--green)">$0</div><div class="stat-lbl">Grand Total</div></div></div>
+    </div>
+    <div class="dash-layout">
+      <div class="stock-panel">
+        <div class="panel-header"><span>📦</span><span class="panel-title">Stock Monitor</span><span class="stock-count" id="stockCount">0</span></div>
+        <div class="stock-list" id="stockList"><div class="stock-empty"><div style="font-size:2rem;opacity:0.4">📦</div><div>No stock codes</div></div></div>
+      </div>
+      <div class="orders-panel">
+        <div class="toolbar">
+          <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" type="text" id="searchInput" placeholder="Search name or code#..." oninput="renderOrders()"/></div>
+          <div style="display:flex;align-items:center;gap:3px">
+            <button class="date-btn" onclick="setDateFilter('all',this)">All</button>
+            <button class="date-btn active" onclick="setDateFilter('today',this)">Today</button>
+            <input class="date-picker" type="date" id="datePicker" onchange="setDateFilter('custom',null)"/>
+          </div>
+          <button class="btn btn-primary" onclick="openAddModal()" style="margin-left:auto">+ Add Order</button>
+          <button class="btn btn-export" onclick="exportToExcel()">📥 Export</button>
+          <button class="btn btn-danger" onclick="smartDelete()">🗑 Delete</button>
+        </div>
+        <div class="orders-scroll" id="ordersScroll"><div class="empty-state"><div class="empty-icon">📦</div><div>No orders yet</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div class="page" id="page-admin">
+    <div class="admin-container">
+      <div class="sub-tabs">
+        <button class="sub-tab range active" onclick="switchAdminTab('range',this)">🏷️ Price Ranges</button>
+        <button class="sub-tab stock" onclick="switchAdminTab('stock',this)">📦 Stock Codes</button>
+        <button class="sub-tab profile" onclick="switchAdminTab('profile',this)">🏪 Shop Profile</button>
+      </div>
+      <div class="admin-sub-content active" id="admintab-range">
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">Add Price Range</div><div class="section-subtitle">1 code = 1 pcs = 1 owner forever</div></div>
+          <div class="form-body">
+            <div class="info-box">💡 Each code can only be owned by ONE customer. First comment wins!</div>
+            <div class="form-row range-row">
+              <div class="form-group"><label>From Code #</label><input type="number" id="fromCode" placeholder="e.g. 1" min="1"/></div>
+              <div class="form-group"><label>To Code #</label><input type="number" id="toCode" placeholder="e.g. 100" min="1"/></div>
+              <div class="form-group"><label>Price (USD $)</label><input type="number" id="rangePrice" placeholder="e.g. 2.00" min="0" step="0.01"/></div>
+              <button class="btn-add orange" onclick="addRange()">+ Add</button>
+            </div>
+          </div>
+          <table class="admin-table"><thead><tr><th>#</th><th>From</th><th>To</th><th>Price</th><th>Created</th><th>Action</th></tr></thead><tbody id="rangeTable"><tr class="empty-row"><td colspan="6">No price ranges yet.</td></tr></tbody></table>
+        </div>
+      </div>
+      <div class="admin-sub-content" id="admintab-stock">
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">Add Stock Code</div><div class="section-subtitle">1 code = many pcs = many customers</div></div>
+          <div class="form-body">
+            <div class="info-box">💡 Multiple customers can order same code until stock runs out. Comment "1=3" to order 3 pcs.</div>
+            <div class="form-row stock-row">
+              <div class="form-group"><label>Code #</label><input type="text" id="stockCode" placeholder="e.g. 1 or J10 or A5" style="text-transform:uppercase"/></div>
+              <div class="form-group"><label>Stock Qty</label><input type="number" id="stockQty" placeholder="e.g. 100" min="1"/></div>
+              <div class="form-group"><label>Price / pcs ($)</label><input type="number" id="stockPrice" placeholder="e.g. 5.00" min="0" step="0.01"/></div>
+              <button class="btn-add purple" onclick="addStockCode()">+ Add</button>
+            </div>
+          </div>
+          <table class="admin-table"><thead><tr><th>Code</th><th>Price</th><th>Total</th><th>Sold</th><th>Remaining</th><th>Status</th><th>Action</th></tr></thead><tbody id="stockTable"><tr class="empty-row"><td colspan="7">No stock codes yet.</td></tr></tbody></table>
+        </div>
+      </div>
+      <div class="admin-sub-content" id="admintab-profile">
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">Shop Profile</div><div class="section-subtitle">Used on invoice header — saved to database</div></div>
+          <div class="form-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+              <div class="form-group"><label>Shop Name</label><input type="text" id="profileShopName" placeholder="e.g. Noun Online"/></div>
+              <div class="form-group"><label>Phone #</label><input type="text" id="profilePhone" placeholder="e.g. 012 345 678"/></div>
+              <div class="form-group"><label>ABA Account #</label><input type="text" id="profileABA" placeholder="e.g. 000498988"/></div>
+              <div class="form-group"><label>ACLIDA Account #</label><input type="text" id="profileACLIDA" placeholder="e.g. 000498988"/></div>
+              <div class="form-group"><label>Paper Size</label><select id="profilePaperSize" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;font-family:Geist Mono,monospace;font-size:0.85rem;color:var(--text);outline:none;width:100%"><option value="80">80mm (standard)</option><option value="58">58mm (small)</option><option value="a4">A4</option></select></div>
+            </div>
+            <div class="form-group" style="margin-bottom:14px">
+              <label>Shop Logo</label>
+              <div style="display:flex;align-items:center;gap:14px">
+                <img id="logoPreview" class="logo-preview" src="" alt="Logo"/>
+                <div>
+                  <div class="upload-area" onclick="document.getElementById('logoInput').click()">📷 Click to upload logo<br/><span style="font-size:0.65rem">JPG, PNG — max 500KB</span></div>
+                  <input type="file" id="logoInput" accept="image/*" style="display:none" onchange="previewLogo(this)"/>
+                </div>
+              </div>
+            </div>
+            <button class="btn-add orange" onclick="saveShopProfile()" style="width:100%;justify-content:center;display:flex">💾 Save Profile</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div class="page" id="page-settings">
+    <div class="settings-container">
+      <div class="guide-box">
+        <div class="guide-title">📖 How to Get Page ID & Token</div>
+        <div class="guide-steps">
+          1. Go to 👉 <a href="https://developers.facebook.com/tools/explorer" target="_blank" style="color:var(--blue)">Graph API Explorer</a><br>
+          2. Select your App → Generate Access Token → select your Page<br>
+          3. Change URL to <span>me/accounts</span> → Submit<br>
+          4. Copy <span>id</span> and <span>access_token</span> from result<br>
+          5. Paste below → click <span>Test &amp; Save</span>
+        </div>
+      </div>
+      <div class="status-card" id="settingsStatusCard"><div class="status-card-title" id="settingsStatusTitle">Testing...</div><div class="info-grid" id="settingsStatusInfo"></div></div>
+      <div class="settings-card">
+        <div class="settings-title">Add Facebook Page</div>
+        <div class="settings-form">
+          <div class="field"><label>Shop Name</label><input type="text" id="shopName" placeholder="e.g. Noun Online"/></div>
+          <div class="field"><label>Page ID</label><input type="text" id="pageId" placeholder="e.g. 113410818008719"/></div>
+          <div class="field"><label>Page Access Token</label><div class="token-wrap"><input type="password" id="pageToken" placeholder="EAAOVb..."/><button class="btn-show" onclick="toggleToken()">Show</button></div></div>
+          <div class="field"><label>Poll Interval</label><select id="pollInterval"><option value="3">3 seconds</option><option value="5" selected>5 seconds</option><option value="10">10 seconds</option></select></div>
+          <div class="btn-row"><button class="btn-test-conn" onclick="testAndSave()">🔌 Test &amp; Save</button><button class="btn-ghost btn" onclick="clearSettingsForm()">Clear</button></div>
+        </div>
+      </div>
+      <div class="settings-title" style="margin-bottom:12px;font-family:Instrument Serif,serif;font-size:1.1rem">Saved Pages</div>
+      <div id="profilesList"><div style="font-family:Geist Mono,monospace;font-size:0.78rem;color:var(--muted);padding:20px;text-align:center">No pages saved yet.</div></div>
+    </div>
+  </div>
+
+  <!-- SUPER ADMIN PAGE -->
+  <div class="page" id="page-superadmin">
+    <div class="sadmin-container">
+      <div class="sadmin-header">
+        <div>
+          <div class="sadmin-title">👑 Super Admin Panel</div>
+          <div style="font-family:Noto Sans Khmer,sans-serif;font-size:0.75rem;color:#a1a1aa;margin-top:2px">គ្រប់គ្រងអ្នកប្រើប្រាស់ / Manage Sellers</div>
+        </div>
+        <div class="sadmin-badge">ADMIN</div>
+      </div>
+      <div class="plan-cards">
+        <div class="plan-card"><div class="plan-card-icon">🎁</div><div class="plan-card-name">Free Trial</div><div class="plan-card-days">3 days / ៣ ថ្ងៃ</div></div>
+        <div class="plan-card"><div class="plan-card-icon">⭐</div><div class="plan-card-name">Pro Monthly</div><div class="plan-card-days">30 days / ៣០ ថ្ងៃ</div></div>
+        <div class="plan-card"><div class="plan-card-icon">👑</div><div class="plan-card-name">Pro Yearly</div><div class="plan-card-days">365 days / ៣៦៥ ថ្ងៃ</div></div>
+      </div>
+      <div class="add-seller-card">
+        <div class="add-seller-header"><div class="add-seller-title">➕ Add New Seller / បន្ថែមអ្នកលក់</div></div>
+        <div class="add-seller-body">
+          <div class="add-seller-grid">
+            <div class="form-group"><label>Username</label><input type="text" id="newUsername" placeholder="e.g. seller01"/></div>
+            <div class="form-group"><label>Password</label><input type="text" id="newPassword" placeholder="e.g. pass123"/></div>
+            <div class="form-group"><label>Shop Name</label><input type="text" id="newShopName" placeholder="e.g. Noun Shop"/></div>
+            <div class="form-group"><label>Plan</label>
+              <select id="newPlan" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 11px;font-family:Geist Mono,monospace;font-size:0.85rem;color:var(--text);outline:none;width:100%">
+                <option value="trial">🎁 Free Trial (3 days)</option>
+                <option value="monthly">⭐ Pro Monthly (30 days)</option>
+                <option value="yearly">👑 Pro Yearly (365 days)</option>
+              </select>
+            </div>
+            <button class="btn-add green" onclick="addSeller()" style="height:38px">+ Add</button>
+          </div>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-header" style="display:flex;align-items:center;justify-content:space-between">
+          <div><div class="section-title">👥 All Sellers / អ្នកលក់ទាំងអស់</div><div class="section-subtitle" id="sellerCount">0 sellers</div></div>
+          <input type="text" placeholder="Search seller..." oninput="filterSellers(this.value)" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:6px 10px;font-family:Geist Mono,monospace;font-size:0.78rem;outline:none;width:200px"/>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>#</th><th>Username</th><th>Password</th><th>Shop Name</th><th>Plan</th><th>Expires</th><th>Days Left</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="sellersTable"><tr class="empty-row"><td colspan="9">No sellers yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title">Add Order</div>
+    <div class="field"><label>Customer Name</label><input type="text" id="modalName" placeholder="e.g. Dara" oninput="resetCheck()"/></div>
+    <div class="field"><label>Code Number</label><input type="text" id="modalCode" placeholder="e.g. 34 or J10" oninput="checkModalCode()" style="text-transform:uppercase"/><div class="modal-check" id="modalCheck"></div></div>
+    <div class="field"><label>Qty</label><input type="number" id="modalQty" placeholder="1" value="1" min="1"/></div>
+    <div class="modal-btns"><button class="btn btn-ghost" onclick="closeAddModal()">Cancel</button><button class="btn btn-primary" onclick="addManualOrder()">Add Order</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="liveModeModal">
+  <div class="modal">
+    <div class="modal-title">🔴 Start Live Mode</div>
+    <div id="liveDetectStatus" style="font-family:Geist Mono,monospace;font-size:0.78rem;color:var(--muted);margin-bottom:16px">Click "Detect Live" to find your active Facebook Live.</div>
+    <div id="liveDetectResult" style="display:none;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:12px;margin-bottom:16px;font-family:Geist Mono,monospace;font-size:0.78rem;"></div>
+    <div class="modal-btns">
+      <button class="btn btn-ghost" onclick="closeLiveModeModal()">Cancel</button>
+      <button class="btn btn-primary" id="btnDetectLive" onclick="detectLiveVideo()">🔍 Detect Live</button>
+      <button class="btn" id="btnConfirmLive" onclick="confirmLiveMode()" style="display:none;background:var(--green);color:#fff">✅ Confirm</button>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore,collection,addDoc,deleteDoc,updateDoc,getDocs,doc,query,orderBy,onSnapshot,serverTimestamp,writeBatch,setDoc,getDoc,where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig={apiKey:"AIzaSyAlOynVw7Ch0b3zCP1xh-XYqYFFbxW0BRk",authDomain:"face-live-orders.firebaseapp.com",projectId:"face-live-orders",storageBucket:"face-live-orders.firebasestorage.app",messagingSenderId:"698344696608",appId:"1:698344696608:web:1878fc0a8e9ab49d628545"};
+const fbApp=initializeApp(firebaseConfig);
+const db=getFirestore(fbApp);
+
+// ── ADMIN CREDENTIALS (change these!) ────────────────────
+const ADMIN_USERNAME='admin';
+const ADMIN_PASSWORD='admin2024';
+
+// ── State ─────────────────────────────────────────────────
+let currentUser=null;
+let allOrders=[],allRanges=[],allStocks=[],allProfiles=[],allSellers=[];
+let activeProfileId=null;
+let deliveryFees={},shopProfile={},contactInfo={};
+let dateFilter='today',customDate='';
+let unsubOrders=null,unsubRanges=null,unsubStocks=null,unsubProfiles=null;
+
+// ── Toast ──────────────────────────────────────────────────
+window.showToast=(msg,type='ok')=>{const t=document.getElementById('toast');t.textContent=msg;t.className='show '+type;setTimeout(()=>t.className='',3000)};
+
+// ══════════════════════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════════════════════
+window.doLogin=async()=>{
+  const username=document.getElementById('loginUsername').value.trim().toLowerCase();
+  const password=document.getElementById('loginPassword').value.trim();
+  const errEl=document.getElementById('loginErr');
+  errEl.style.display='none';
+  if(!username||!password){errEl.style.display='block';return}
+
+  // Admin check — password loaded from Firebase
+  if(username===ADMIN_USERNAME){
+    try{
+      const adminSnap=await getDoc(doc(db,'settings','admin_credentials'));
+      if(adminSnap.exists()){
+        if(password!==adminSnap.data().password){errEl.style.display='block';return}
+      } else {
+        if(password!==ADMIN_PASSWORD){errEl.style.display='block';return}
+      }
+    }catch(e){
+      if(password!==ADMIN_PASSWORD){errEl.style.display='block';return}
+    }
+    currentUser={username:ADMIN_USERNAME,role:'admin'};
+    sessionStorage.setItem('liveorder_session',JSON.stringify({...currentUser,loginAt:Date.now()}));
+    startAdminSession();return;
+  }
+
+  // Seller check
+  try{
+    const snap=await getDocs(query(collection(db,'sellers'),where('username','==',username)));
+    if(snap.empty){errEl.style.display='block';return}
+    const sellerDoc=snap.docs[0];
+    const seller=sellerDoc.data();
+    if(seller.password!==password){errEl.style.display='block';return}
+    if(seller.disabled){errEl.textContent='❌ Account disabled. Contact admin. / គណនីត្រូវបានបិទ។';errEl.style.display='block';return}
+    const now=new Date();
+    const expiry=seller.expiresAt?.toDate?seller.expiresAt.toDate():new Date(seller.expiresAt);
+    if(now>expiry){document.getElementById('loginScreen').style.display='none';document.getElementById('expiredScreen').style.display='flex';return}
+    currentUser={username,role:'seller',sellerId:sellerDoc.id,shopName:seller.shopName,expiresAt:expiry};sessionStorage.setItem('liveorder_session',JSON.stringify({...currentUser,expiresAt:expiry.toISOString(),loginAt:Date.now()}));
+    startSellerSession();
+  }catch(e){errEl.textContent='❌ Error: '+e.message;errEl.style.display='block'}
+};
+
+function startAdminSession(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('navUsername').textContent='Admin 👑';
+  if(!document.getElementById('tabSuperAdmin')){
+    const btn=document.createElement('button');
+    btn.className='nav-tab';btn.id='tabSuperAdmin';
+    btn.innerHTML='👑 Super Admin';
+    btn.onclick=function(){switchPage('superadmin',this)};
+    document.getElementById('mainNavTabs').appendChild(btn);
+  }
+  loadSellers();
+  startFirebaseListeners('');
+  // Restore live mode button state on page refresh
+  getDoc(doc(db,'settings','live_mode')).then(snap=>{
+    if(snap.exists()&&snap.data().active){
+      activeLiveId=snap.data().liveVideoId;
+      updateLiveModeUI(true,snap.data().liveTitle||'Live');
+    }
+  }).catch(()=>{});
+  // Load admin shop profile from localStorage + Firebase
+  shopProfile=JSON.parse(localStorage.getItem('sp_admin')||'{}');
+  loadShopProfileUI();
+  getDoc(doc(db,'settings','shop_profile')).then(snap=>{
+    if(snap.exists()){
+      const d=snap.data();
+      shopProfile={...shopProfile,...d};
+      localStorage.setItem('sp_admin',JSON.stringify(shopProfile));
+      loadShopProfileUI();
+    }
+  }).catch(()=>{});
+  // Load contactInfo from Firebase for admin
+  getDoc(userSettingsDoc('contact_info')).then(snap=>{
+    if(snap.exists()&&snap.data().data){
+      try{
+        const ci=JSON.parse(snap.data().data);
+        contactInfo={...contactInfo,...ci};
+        localStorage.setItem('ci_admin',JSON.stringify(contactInfo));
+        renderOrders();
+      }catch(e){}
+    }
+  }).catch(()=>{});
+  // Load deliveryFees from Firebase for admin
+  getDoc(userSettingsDoc('delivery_fees')).then(snap=>{
+    if(snap.exists()&&snap.data().data){
+      try{
+        const df=JSON.parse(snap.data().data);
+        deliveryFees={...deliveryFees,...df};
+        localStorage.setItem('df_admin',JSON.stringify(deliveryFees));
+        renderOrders();
+      }catch(e){}
+    }
+  }).catch(()=>{});
+}
+
+function startSellerSession(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainApp').style.display='block';
+  document.getElementById('navUsername').textContent=currentUser.shopName||currentUser.username;
+  const now=new Date();
+  const diff=Math.ceil((currentUser.expiresAt-now)/(1000*60*60*24));
+  if(diff<=3&&diff>0){
+    document.getElementById('warningBanner').classList.add('show');
+    document.getElementById('warningText').textContent='Your plan expires in '+diff+' day(s)! Contact admin to renew.';
+    document.getElementById('warningTextKh').textContent='ការជាវផុតកំណត់ក្នុងរយៈពេល '+diff+' ថ្ងៃ!';
+  }
+  deliveryFees=JSON.parse(localStorage.getItem('df_'+currentUser.sellerId)||'{}');
+  shopProfile=JSON.parse(localStorage.getItem('sp_'+currentUser.sellerId)||'{}');
+  contactInfo=JSON.parse(localStorage.getItem('ci_'+currentUser.sellerId)||'{}');
+  activeProfileId=localStorage.getItem('ap_'+currentUser.sellerId)||null;
+  loadShopProfileUI();
+  // Restore live mode button state on page refresh
+  getDoc(userSettingsDoc('live_mode')).then(snap=>{
+    if(snap.exists()&&snap.data().active){
+      activeLiveId=snap.data().liveVideoId;
+      updateLiveModeUI(true,snap.data().liveTitle||'Live');
+    }
+  }).catch(()=>{});
+  // Also load from Firebase to get latest data including logo
+  getDoc(doc(db,'sellers',currentUser.sellerId,'settings','shop_profile')).then(snap=>{
+    if(snap.exists()){
+      const d=snap.data();
+      shopProfile={...shopProfile,...d};
+      localStorage.setItem('sp_'+currentUser.sellerId,JSON.stringify(shopProfile));
+      loadShopProfileUI();
+    }
+  }).catch(()=>{});
+  // Load contactInfo from Firebase (phone numbers & addresses)
+  getDoc(userSettingsDoc('contact_info')).then(snap=>{
+    if(snap.exists()&&snap.data().data){
+      try{
+        const ci=JSON.parse(snap.data().data);
+        contactInfo={...contactInfo,...ci};
+        localStorage.setItem('ci_'+currentUser.sellerId,JSON.stringify(contactInfo));
+        renderOrders(); // re-render to show saved phone/address
+      }catch(e){}
+    }
+  }).catch(()=>{});
+  // Load deliveryFees from Firebase
+  getDoc(userSettingsDoc('delivery_fees')).then(snap=>{
+    if(snap.exists()&&snap.data().data){
+      try{
+        const df=JSON.parse(snap.data().data);
+        deliveryFees={...deliveryFees,...df};
+        localStorage.setItem('df_'+currentUser.sellerId,JSON.stringify(deliveryFees));
+        renderOrders();
+      }catch(e){}
+    }
+  }).catch(()=>{});
+  startFirebaseListeners(currentUser.sellerId);
+}
+
+window.doLogout=()=>{
+  if(!confirm('Logout? / ចេញពីប្រព័ន្ធ?'))return;
+  if(unsubOrders)unsubOrders();if(unsubRanges)unsubRanges();if(unsubStocks)unsubStocks();if(unsubProfiles)unsubProfiles();
+  currentUser=null;sessionStorage.removeItem('liveorder_session');allOrders=[];allRanges=[];allStocks=[];allProfiles=[];
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUsername').value='';
+  document.getElementById('loginPassword').value='';
+  const t=document.getElementById('tabSuperAdmin');if(t)t.remove();
+  document.getElementById('warningBanner').classList.remove('show');
+};
+
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+document.getElementById('loginUsername').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+// ══════════════════════════════════════════════════════════
+// FIREBASE LISTENERS
+// ══════════════════════════════════════════════════════════
+function startFirebaseListeners(sellerId){
+  const ordersCol=sellerId?collection(db,'sellers',sellerId,'orders'):collection(db,'orders');
+  const rangesCol=sellerId?collection(db,'sellers',sellerId,'price_ranges'):collection(db,'price_ranges');
+  const stocksCol=sellerId?collection(db,'sellers',sellerId,'stock_codes'):collection(db,'stock_codes');
+  const profileCol=sellerId?collection(db,'sellers',sellerId,'fb_profiles'):collection(db,'fb_profiles');
+
+  unsubOrders=onSnapshot(query(ordersCol,orderBy('createdAt','asc')),snap=>{
+    document.getElementById('fbDot').className='conn-dot ok';
+    document.getElementById('fbStatus').textContent='Live ✓';
+    allOrders=snap.docs.map(d=>({id:d.id,...d.data()}));renderOrders();
+  },()=>{document.getElementById('fbDot').className='conn-dot';document.getElementById('fbStatus').textContent='Error'});
+
+  unsubRanges=onSnapshot(query(rangesCol,orderBy('from','asc')),snap=>{
+    allRanges=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const tbody=document.getElementById('rangeTable');
+    if(snap.empty){tbody.innerHTML='<tr class="empty-row"><td colspan="6">No price ranges yet.</td></tr>';return}
+    tbody.innerHTML=snap.docs.map((d,i)=>{const r=d.data(),date=r.createdAt?new Date(r.createdAt.seconds*1000).toLocaleDateString():'—';return`<tr><td style="color:var(--muted)">${i+1}</td><td><span class="tag-orange">${r.from}</span></td><td><span class="tag-orange">${r.to}</span></td><td><span class="tag-green">$${parseFloat(r.price).toFixed(2)}</span></td><td style="color:var(--muted);font-size:0.75rem">${date}</td><td><button class="btn-edit" onclick="editRange('${d.id}','price',${r.price})">✏️ Price</button><button class="btn-del" onclick="deleteRange('${d.id}')">Delete</button></td></tr>`}).join('');
+  });
+
+  unsubStocks=onSnapshot(query(stocksCol,orderBy('code','asc')),snap=>{
+    allStocks=snap.docs.map(d=>({id:d.id,...d.data()}));renderStock();
+    const tbody=document.getElementById('stockTable');
+    if(snap.empty){tbody.innerHTML='<tr class="empty-row"><td colspan="7">No stock codes yet.</td></tr>';return}
+    tbody.innerHTML=snap.docs.map(d=>{const s=d.data(),total=s.totalQty||0,remaining=s.remainingQty!==undefined?s.remainingQty:total,pct=total>0?Math.round((remaining/total)*100):0,color=pct>50?'#16a34a':pct>20?'#d97706':'#dc2626',status=remaining===0?'<span class="tag-red">SOLD OUT</span>':pct<=20?'<span class="tag-orange">LOW</span>':'<span class="tag-green">OK</span>';return`<tr><td><span class="tag-purple">#${s.code}</span></td><td><span class="tag-green">$${parseFloat(s.price).toFixed(2)}</span></td><td>${total}</td><td style="color:var(--accent)">${s.soldQty||0}</td><td><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${color};border-radius:2px"></div></div><span style="font-size:0.72rem;font-weight:600;color:${color}">${remaining}</span></div></td><td>${status}</td><td><button class="btn-edit" onclick="editStockCode('${d.id}','price',${s.price})">✏️ Price</button><button class="btn-edit" onclick="editStockCode('${d.id}','totalQty',${total})">✏️ Qty</button><button class="btn-del" onclick="deleteStockCode('${d.id}')">Del</button></td></tr>`}).join('');
+  });
+
+  unsubProfiles=onSnapshot(query(profileCol,orderBy('createdAt','asc')),snap=>{
+    allProfiles=snap.docs.map(d=>({id:d.id,...d.data()}));renderProfiles();
+  });
+}
+
+// Scoped collection/doc helpers
+function userCol(name){if(!currentUser)return null;if(currentUser.role==='admin')return collection(db,name);return collection(db,'sellers',currentUser.sellerId,name)}
+function userDoc(name,id){if(!currentUser)return null;if(currentUser.role==='admin')return doc(db,name,id);return doc(db,'sellers',currentUser.sellerId,name,id)}
+function userSettingsDoc(name){if(!currentUser)return null;if(currentUser.role==='admin')return doc(db,'settings',name);return doc(db,'sellers',currentUser.sellerId,'settings',name)}
+
+// ══════════════════════════════════════════════════════════
+// SUPER ADMIN
+// ══════════════════════════════════════════════════════════
+async function loadSellers(){
+  try{
+    const snap=await getDocs(query(collection(db,'sellers'),orderBy('createdAt','asc')));
+    allSellers=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderSellers(allSellers);
+  }catch(e){showToast('Error loading sellers','err')}
+}
+
+function renderSellers(sellers){
+  document.getElementById('sellerCount').textContent=sellers.length+' sellers';
+  const tbody=document.getElementById('sellersTable');
+  if(sellers.length===0){tbody.innerHTML='<tr class="empty-row"><td colspan="9">No sellers yet.</td></tr>';return}
+  tbody.innerHTML=sellers.map((s,i)=>{
+    const now=new Date();
+    const expiry=s.expiresAt?.toDate?s.expiresAt.toDate():new Date(s.expiresAt);
+    const daysLeft=Math.ceil((expiry-now)/(1000*60*60*24));
+    const isExpired=daysLeft<=0;
+    const planTag=s.plan==='trial'?'<span class="tag-orange">🎁 Trial</span>':s.plan==='monthly'?'<span class="tag-blue">⭐ Monthly</span>':'<span class="tag-purple">👑 Yearly</span>';
+    const statusTag=s.disabled?'<span class="tag-red">Disabled</span>':isExpired?'<span class="tag-red">Expired</span>':daysLeft<=3?'<span class="tag-orange">Expiring</span>':'<span class="tag-green">Active</span>';
+    const daysTag=isExpired?`<span class="tag-red">${daysLeft}d</span>`:daysLeft<=3?`<span class="tag-orange">${daysLeft}d</span>`:`<span class="tag-green">${daysLeft}d</span>`;
+    return`<tr class="${s.disabled?'seller-disabled':''}">
+      <td style="color:var(--muted)">${i+1}</td>
+      <td style="font-weight:600">${s.username}</td>
+      <td><span style="font-family:Geist Mono,monospace;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-size:0.78rem">${s.password}</span></td>
+      <td>${s.shopName||'—'}</td>
+      <td>${planTag}</td>
+      <td style="font-size:0.75rem;color:var(--muted)">${expiry.toLocaleDateString()}</td>
+      <td>${daysTag}</td>
+      <td>${statusTag}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn-edit" onclick="renewSeller('${s.id}','trial')" title="Free Trial">🎁</button>
+        <button class="btn-edit" onclick="renewSeller('${s.id}','monthly')" title="Monthly">⭐</button>
+        <button class="btn-edit" onclick="renewSeller('${s.id}','yearly')" title="Yearly">👑</button>
+        <button class="btn-edit" onclick="toggleDisable('${s.id}',${!!s.disabled})">${s.disabled?'✅':'🚫'}</button>
+        <button class="btn-del" onclick="deleteSeller('${s.id}')">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+window.filterSellers=(search)=>{const filtered=allSellers.filter(s=>s.username.toLowerCase().includes(search.toLowerCase())||(s.shopName||'').toLowerCase().includes(search.toLowerCase()));renderSellers(filtered)};
+
+window.addSeller=async()=>{
+  const username=document.getElementById('newUsername').value.trim().toLowerCase();
+  const password=document.getElementById('newPassword').value.trim();
+  const shopName=document.getElementById('newShopName').value.trim();
+  const plan=document.getElementById('newPlan').value;
+  if(!username||!password){showToast('Fill username & password!','warn');return}
+  const existing=await getDocs(query(collection(db,'sellers'),where('username','==',username)));
+  if(!existing.empty){showToast('Username already exists!','err');return}
+  const days=plan==='trial'?3:plan==='monthly'?30:365;
+  const expiresAt=new Date(Date.now()+days*24*60*60*1000);
+  try{
+    await addDoc(collection(db,'sellers'),{username,password,shopName,plan,expiresAt,disabled:false,createdAt:serverTimestamp()});
+    document.getElementById('newUsername').value='';document.getElementById('newPassword').value='';document.getElementById('newShopName').value='';
+    showToast('✅ Seller "'+username+'" added! '+days+' days','ok');loadSellers();
+  }catch(e){showToast('Error: '+e.message,'err')}
+};
+
+window.renewSeller=async(id,plan)=>{
+  const days=plan==='trial'?3:plan==='monthly'?30:365;
+  const label=plan==='trial'?'Free Trial (3d)':plan==='monthly'?'Pro Monthly (30d)':'Pro Yearly (365d)';
+  if(!confirm('Renew with '+label+'?'))return;
+  const expiresAt=new Date(Date.now()+days*24*60*60*1000);
+  try{await updateDoc(doc(db,'sellers',id),{plan,expiresAt,disabled:false});showToast('✅ Renewed: '+label,'ok');loadSellers()}catch(e){showToast('Error: '+e.message,'err')}
+};
+
+window.toggleDisable=async(id,isDisabled)=>{
+  if(!confirm((isDisabled?'Enable':'Disable')+' this seller?'))return;
+  try{await updateDoc(doc(db,'sellers',id),{disabled:!isDisabled});showToast('✅ Done','ok');loadSellers()}catch(e){showToast('Error','err')}
+};
+
+window.deleteSeller=async(id)=>{
+  if(!confirm('Delete this seller permanently?'))return;
+  try{await deleteDoc(doc(db,'sellers',id));showToast('Seller deleted','warn');loadSellers()}catch(e){showToast('Error','err')}
+};
+
+// ══════════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════════
+window.switchPage=(page,el)=>{document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));el.classList.add('active');document.getElementById('page-'+page).classList.add('active')};
+window.switchAdminTab=(tab,el)=>{document.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.admin-sub-content').forEach(c=>c.classList.remove('active'));el.classList.add('active');document.getElementById('admintab-'+tab).classList.add('active')};
+
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+function getPriceForCode(code){const stock=allStocks.find(s=>s.code===code);if(stock)return{price:stock.price,type:'stock'};const range=allRanges.find(r=>code>=r.from&&code<=r.to);if(range)return{price:range.price,type:'range'};return null}
+function getOwner(code){const o=allOrders.find(o=>o.code===code&&o.type==='price_range');return o?o.userName:null}
+function fmtDate(ts){if(!ts)return'—';const d=ts.seconds?new Date(ts.seconds*1000):new Date(ts);return d.toLocaleDateString([],{month:'short',day:'numeric'})}
+function fmtTime(ts){if(!ts)return'—';const d=ts.seconds?new Date(ts.seconds*1000):new Date(ts);return d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+function todayStr(){return new Date().toISOString().split('T')[0]}
+function saveLocal(){
+  const pfx=currentUser?.sellerId||'admin';
+  localStorage.setItem('df_'+pfx,JSON.stringify(deliveryFees));
+  localStorage.setItem('ci_'+pfx,JSON.stringify(contactInfo));
+  // Also save to Firebase for persistence across devices/refreshes
+  try {
+    setDoc(userSettingsDoc('contact_info'),{data:JSON.stringify(contactInfo),updatedAt:serverTimestamp()}).catch(()=>{});
+    setDoc(userSettingsDoc('delivery_fees'),{data:JSON.stringify(deliveryFees),updatedAt:serverTimestamp()}).catch(()=>{});
+  } catch(e){}
+}
+
+window.setDateFilter=(filter,el)=>{dateFilter=filter;if(filter==='custom'){customDate=document.getElementById('datePicker').value;document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'))}else{customDate='';document.getElementById('datePicker').value='';document.querySelectorAll('.date-btn').forEach(b=>b.classList.remove('active'));if(el)el.classList.add('active')}renderOrders()};
+function filterByDate(orders){if(dateFilter==='all')return orders;const target=dateFilter==='today'?todayStr():customDate;if(!target)return orders;return orders.filter(o=>{if(!o.createdAt)return false;const d=o.createdAt.seconds?new Date(o.createdAt.seconds*1000):new Date(o.createdAt);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')===target})}
+
+function updateStats(filtered){const users=[...new Set(filtered.map(o=>o.userName))],revenue=filtered.reduce((s,o)=>s+((o.qty||1)*(o.price||0)),0),deliv=Object.values(deliveryFees).reduce((s,v)=>s+(parseFloat(v)||0),0),grand=revenue+deliv;document.getElementById('statOrders').textContent=filtered.length;document.getElementById('statCustomers').textContent=users.length;document.getElementById('statCodes').textContent=[...new Set(filtered.map(o=>o.code))].length;document.getElementById('statRevenue').textContent='$'+grand.toFixed(2);document.getElementById('hOrders').textContent=filtered.length;document.getElementById('hTotal').textContent='$'+grand.toFixed(2)}
+
+function renderStock(){const list=document.getElementById('stockList');document.getElementById('stockCount').textContent=allStocks.length;if(allStocks.length===0){list.innerHTML='<div class="stock-empty"><div style="font-size:2rem;opacity:.4">📦</div><div>No stock codes</div></div>';return}list.innerHTML=allStocks.map(s=>{const total=s.totalQty||0,remaining=s.remainingQty!==undefined?s.remainingQty:total,pct=total>0?Math.round((remaining/total)*100):0,color=pct>50?'#16a34a':pct>20?'#d97706':'#dc2626',cls=remaining===0?'sold-out':pct<=20?'low-stock':'',badge=remaining===0?'<span class="status-badge badge-out">OUT</span>':pct<=20?'<span class="status-badge badge-low">LOW</span>':'<span class="status-badge badge-ok">OK</span>';return`<div class="stock-item ${cls}"><div class="stock-item-header"><span class="code-tag-sm">#${s.code}</span>${badge}<span class="price-tag-sm">$${parseFloat(s.price).toFixed(2)}</span></div><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill" style="width:${pct}%;background:${color}"></div></div><span class="stock-numbers">${remaining}/${total}</span></div></div>`}).join('')}
+
+window.renderOrders=()=>{const search=document.getElementById('searchInput').value.toLowerCase();let filtered=allOrders.filter(o=>!search||o.userName.toLowerCase().includes(search)||String(o.code).includes(search.replace('#','')));filtered=filterByDate(filtered);const scroll=document.getElementById('ordersScroll');if(filtered.length===0){scroll.innerHTML=`<div class="empty-state"><div class="empty-icon">📦</div><div>${allOrders.length===0?'No orders yet':'No results'}</div></div>`;updateStats([]);return}const groups={};filtered.forEach(o=>{const k=o.userName.toLowerCase();if(!groups[k])groups[k]=[];groups[k].push(o)});let html='',grandTotal=0;Object.entries(groups).forEach(([k,orders])=>{const name=orders[0].userName,sub=orders.reduce((s,o)=>s+((o.qty||1)*(o.price||0)),0),deliv=parseFloat(deliveryFees[name]||0),userTot=sub+deliv,contact=contactInfo[name]||{};grandTotal+=userTot;html+=`<div class="user-card"><div class="user-header"><div class="user-avatar">${name.charAt(0).toUpperCase()}</div><div class="user-info"><div class="user-name">${name}</div><div class="user-meta">${orders.map(o=>'#'+o.code+(o.qty>1?'×'+o.qty:'')).join(' · ')} · $${sub.toFixed(2)}</div></div><button class="btn-print-sm" onclick="printInvoice('${name}')">🖨️ Print</button></div><div class="contact-row"><div class="contact-field"><span class="contact-icon">📞</span><input class="contact-input" type="text" placeholder="Phone number" value="${contact.phone||''}" onchange="updateContact('${name}','phone',this.value)"/></div><div class="contact-field"><span class="contact-icon">📍</span><input class="contact-input" type="text" placeholder="Delivery address" value="${contact.address||''}" onchange="updateContact('${name}','address',this.value)"/></div></div><div class="order-thead"><div class="th">Code</div><div class="th">Date</div><div class="th">Time</div><div class="th">Total</div><div class="th">Qty</div><div class="th">Price</div><div class="th"></div></div>${orders.map(o=>{const qty=o.qty!==undefined?o.qty:1,price=o.price!==undefined?o.price:0;return`<div class="order-row"><div><span class="code-tag ${o.type==='stock_code'?'purple':''}">#${o.code}</span></div><div class="date-val">${fmtDate(o.createdAt)}</div><div class="time-val">${fmtTime(o.createdAt)}</div><div class="total-val">$${(qty*price).toFixed(2)}</div><div><input class="edit-input" type="number" min="1" value="${qty}" style="width:46px" onchange="updateQty('${o.id}',this.value)"/></div><div><input class="edit-input" type="number" min="0" step="0.01" value="${parseFloat(price).toFixed(2)}" style="width:58px" onchange="updatePrice('${o.id}',this.value)"/></div><div><button class="btn-del-row" onclick="deleteOrder('${o.id}')">✕</button></div></div>`}).join('')}<div class="delivery-row"><span class="delivery-label">🚚 Delivery</span><input class="delivery-input" type="number" min="0" step="0.5" placeholder="0.00" value="${deliv>0?deliv.toFixed(2):''}" onchange="updateDelivery('${name}',this.value)"/><span class="delivery-total">$${deliv.toFixed(2)}</span></div><div class="subtotal-row"><span class="subtotal-label">Total for ${name}</span><span class="subtotal-val">$${userTot.toFixed(2)}</span></div></div>`});html+=`<div class="grand-total"><span class="gt-label">Grand Total · ${Object.keys(groups).length} customer(s)</span><span class="gt-val">$${grandTotal.toFixed(2)}</span></div>`;scroll.innerHTML=html;updateStats(filtered)};
+
+window.updateContact=(n,f,v)=>{if(!contactInfo[n])contactInfo[n]={};contactInfo[n][f]=v;saveLocal()};
+window.updateQty=async(id,val)=>{try{await updateDoc(userDoc('orders',id),{qty:Math.max(1,parseInt(val)||1)})}catch(e){showToast('Error','err')}};
+window.updatePrice=async(id,val)=>{try{await updateDoc(userDoc('orders',id),{price:Math.max(0,parseFloat(val)||0)})}catch(e){showToast('Error','err')}};
+window.updateDelivery=(n,v)=>{deliveryFees[n]=parseFloat(v)||0;saveLocal();renderOrders()};
+window.deleteOrder=async id=>{if(!confirm('Delete?'))return;try{await deleteDoc(userDoc('orders',id));showToast('Deleted','ok')}catch(e){showToast('Error','err')}};
+
+window.smartDelete=async()=>{let filtered=filterByDate(allOrders);const search=document.getElementById('searchInput').value.toLowerCase();if(search)filtered=filtered.filter(o=>o.userName.toLowerCase().includes(search));if(filtered.length===0){showToast('No orders to delete!','warn');return}const label=dateFilter==='all'?'ALL orders':dateFilter==='today'?"today's orders":`orders on ${customDate}`;if(!confirm(`Delete ${filtered.length} ${label}?`))return;try{const batch=writeBatch(db);filtered.forEach(o=>batch.delete(userDoc('orders',o.id)));await batch.commit();const deletedNames=[...new Set(filtered.map(o=>o.userName))],remaining=allOrders.filter(o=>!filtered.find(f=>f.id===o.id)),remainingNames=new Set(remaining.map(o=>o.userName));deletedNames.forEach(name=>{if(!remainingNames.has(name)){delete deliveryFees[name];delete contactInfo[name]}});saveLocal();showToast(`🗑️ Deleted ${filtered.length} orders!`,'warn')}catch(e){showToast('Error: '+e.message,'err')}};
+
+window.exportToExcel=()=>{let filtered=filterByDate(allOrders);const search=document.getElementById('searchInput').value.toLowerCase();if(search)filtered=filtered.filter(o=>o.userName.toLowerCase().includes(search));if(filtered.length===0){showToast('No orders to export!','warn');return}const rows=[['Customer Name','Code #','Qty','Price ($)']];filtered.forEach(o=>rows.push([o.userName,o.code,o.qty||1,(o.price||0).toFixed(2)]));const csv=rows.map(row=>row.map(cell=>'"'+String(cell).replace(/"/g,'""')+'"').join(',')).join('\n'),label=dateFilter==='all'?'All':dateFilter==='today'?'Today':customDate||'Export',filename=`LiveOrder_${label}_${new Date().toISOString().split('T')[0]}.csv`,blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);showToast(`📥 Exported ${filtered.length} orders!`,'ok')};
+
+window.printInvoice = userName => {
+  const orders = allOrders.filter(o => o.userName === userName),
+        sub = orders.reduce((s, o) => s + ((o.qty || 1) * (o.price || 0)), 0),
+        deliv = parseFloat(deliveryFees[userName] || 0),
+        total = sub + deliv,
+        contact = contactInfo[userName] || {},
+        sp = shopProfile || {},
+        totalRiel = Math.round(total * 4000),
+        paper = sp.paperSize || '80',
+        maxW = paper === '58' ? '58mm' : paper === '80' ? '80mm' : '210mm',
+        pad = paper === 'a4' ? '32px' : '8px',
+        fontSize = paper === 'a4' ? '13px' : '11px',
+        codesList = orders.map(o => '#' + o.code).join(', '),
+        totalQty = orders.reduce((s, o) => s + (o.qty || 1), 0),
+        logoHtml = sp.logo ? `<img src="${sp.logo}" style="width:70px;height:70px;border-radius:50%;object-fit:cover;margin-bottom:6px"/>` : '';
+
+  const html = `
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Noto Sans Khmer',sans-serif;font-size:${fontSize};color:#18181b;padding:${pad};max-width:${maxW};margin:0 auto}
+      .center{text-align:center}
+      .shop-name{font-size:1.1em;font-weight:700;margin-bottom:2px}
+      .divider{border:none;border-top:1px dashed #aaa;margin:8px 0}
+      .divider2{border:none;border-top:2px solid #333;margin:8px 0}
+      
+      .info-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;font-size:.9em;gap:8px}
+      
+      /* 🌟 THE FIX: Forces your Khmer labels to ALWAYS stay on 1 line and never break! */
+      .label{color:#555;flex-shrink:0;white-space:nowrap;}
+      
+      /* Allows codes to wrap nicely onto line 2 on the right side only */
+      .value-text{text-align:right;word-break:break-all;flex-grow:1;}
+      
+      .total-row{display:flex;justify-content:space-between;font-weight:700;margin-bottom:3px}
+      .total-riel{display:flex;justify-content:space-between;font-size:.9em;color:#555;margin-bottom:3px}
+      .thank-you{text-align:center;font-size:.85em;color:#555;margin:8px 0}
+      @media print{body{padding:4px}}
+    </style>
+    <div class="center">
+      ${logoHtml}
+      <div class="shop-name">${sp.name || 'LiveOrder'}</div>
+      <div class="label">ទូរស័ព្ទ: ${sp.phone || ''}</div>
+      <div class="label">ABA: ${sp.aba || ''}</div>
+      ${sp.aclida ? '<div class="label">ACLIDA: ' + sp.aclida + '</div>' : ''}
+    </div>
+    <hr class="divider2"/>
+    <div class="info-row"><span class="label">👤 អតិថិជន</span><span class="value-text">${userName}</span></div>
+    ${contact.phone ? `<div class="info-row"><span class="label">📞 ទូរស័ព្ទ</span><span class="value-text">${contact.phone}</span></div>` : ''} 
+    ${contact.address ? `<div class="info-row"><span class="label">📍 ទីតាំង</span><span class="value-text">${contact.address}</span></div>` : ''}
+    
+    <div class="info-row"><span class="label">🏷️ លេខកូដ</span><span class="value-text" style="font-weight:700;">${codesList}</span></div>
+    
+    <div class="info-row"><span class="label">ចំនួន</span><span class="value-text">${totalQty} ខោ/អាវ</span></div>
+    <hr class="divider"/>
+    ${deliv > 0 ? `<div class="info-row"><span class="label">🚚 ដឹក</span><span class="value-text">$${deliv.toFixed(2)}</span></div>` : ''}
+    <div class="total-row"><span>💵 សរុប $</span><span>$${total.toFixed(2)}</span></div>
+    <div class="total-riel"><span>💵 សរុប ៛</span><span>${totalRiel.toLocaleString()}៛</span></div>
+    <hr class="divider2"/>
+    <div class="thank-you">សូមអរគុណ!</div>
+  `;
+
+  const win = window.open('', '_blank', 'width=400,height=600');
+  win.document.write(`<!DOCTYPE html><html><head><title>Invoice</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@400;700&display=swap" rel="stylesheet"/></head><body>${html}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 1000);
+};
+
+window.openAddModal=()=>document.getElementById('addModal').classList.add('show');
+window.closeAddModal=()=>{document.getElementById('addModal').classList.remove('show');document.getElementById('modalCheck').style.display='none'};
+window.checkModalCode=()=>{const code=document.getElementById('modalCode').value.trim().toUpperCase(),qty=parseInt(document.getElementById('modalQty').value)||1,box=document.getElementById('modalCheck');if(!code){box.style.display='none';return}const found=getPriceForCode(code),owner=getOwner(code);box.style.display='block';if(!found){box.className='modal-check err';box.textContent=`⚠️ Code ${code} not found`}else if(found.type==='range'&&owner){box.className='modal-check err';box.textContent=`❌ Code ${code} taken by ${owner}`}else if(found.type==='stock'){const s=allStocks.find(s=>s.code===code);if(s&&qty>s.remainingQty){box.className='modal-check err';box.textContent=`❌ Only ${s.remainingQty} left!`}else{box.className='modal-check ok';box.textContent=`✅ $${found.price.toFixed(2)}/pcs · ${s?.remainingQty||0} left`}}else{box.className='modal-check ok';box.textContent=`✅ Available — $${found.price.toFixed(2)}`}};
+window.resetCheck=()=>{document.getElementById('modalCheck').style.display='none'};
+window.addManualOrder=async()=>{const name=document.getElementById('modalName').value.trim(),code=document.getElementById('modalCode').value.trim().toUpperCase(),qty=parseInt(document.getElementById('modalQty').value)||1;if(!name||!code){showToast('Fill all fields!','warn');return}const found=getPriceForCode(code);if(!found){showToast('Code not found!','warn');return}if(found.type==='range'){const owner=getOwner(code);if(owner){showToast(`Code ${code} taken by ${owner}!`,'err');return}await addDoc(userCol('orders'),{userName:name,code,price:found.price,qty:1,type:'price_range',source:'manual',createdAt:serverTimestamp()})}else{const s=allStocks.find(s=>s.code===code);if(!s||qty>s.remainingQty){showToast('Not enough stock!','err');return}await addDoc(userCol('orders'),{userName:name,code,price:found.price,qty,type:'stock_code',source:'manual',createdAt:serverTimestamp()});await updateDoc(userDoc('stock_codes',s.id),{remainingQty:s.remainingQty-qty,soldQty:(s.soldQty||0)+qty})}showToast('Order added!','ok');closeAddModal();document.getElementById('modalName').value='';document.getElementById('modalCode').value='';document.getElementById('modalQty').value='1'};
+
+window.addRange=async()=>{const from=parseInt(document.getElementById('fromCode').value),to=parseInt(document.getElementById('toCode').value),price=parseFloat(document.getElementById('rangePrice').value);if(!from||!to||isNaN(price)){showToast('Fill all fields!','warn');return}if(from>=to){showToast('From must be less than To!','warn');return}if(price<=0){showToast('Price must be > 0!','warn');return}try{await addDoc(userCol('price_ranges'),{from,to,price,createdAt:serverTimestamp()});document.getElementById('fromCode').value='';document.getElementById('toCode').value='';document.getElementById('rangePrice').value='';showToast('✅ Range added!')}catch(e){showToast('Error: '+e.message,'err')}};
+window.deleteRange=async id=>{if(!confirm('Delete?'))return;try{await deleteDoc(userDoc('price_ranges',id));showToast('Deleted!')}catch(e){showToast('Error','err')}};
+window.editRange=async(id,field,cur)=>{const v=prompt(`New ${field}:`,cur);if(v===null)return;const val=field==='price'?parseFloat(v):parseInt(v);if(isNaN(val)||val<=0){showToast('Invalid!','warn');return}try{await updateDoc(userDoc('price_ranges',id),{[field]:val});showToast('✅ Updated!')}catch(e){showToast('Error','err')}};
+window.addStockCode=async()=>{const code=document.getElementById('stockCode').value.trim().toUpperCase(),qty=parseInt(document.getElementById('stockQty').value),price=parseFloat(document.getElementById('stockPrice').value);if(!code||!qty||isNaN(price)){showToast('Fill all fields!','warn');return}if(qty<=0||price<=0){showToast('Values must be > 0!','warn');return}const existing=await getDocs(query(userCol('stock_codes')));if(existing.docs.find(d=>d.data().code===code)){showToast(`Code #${code} already exists!`,'warn');return}try{await addDoc(userCol('stock_codes'),{code,totalQty:qty,remainingQty:qty,soldQty:0,price,createdAt:serverTimestamp()});document.getElementById('stockCode').value='';document.getElementById('stockQty').value='';document.getElementById('stockPrice').value='';showToast('✅ Stock code added!')}catch(e){showToast('Error: '+e.message,'err')}};
+window.deleteStockCode=async id=>{if(!confirm('Delete?'))return;try{await deleteDoc(userDoc('stock_codes',id));showToast('Deleted!')}catch(e){showToast('Error','err')}};
+window.editStockCode=async(id,field,cur)=>{const v=prompt(`New ${field==='price'?'price':field==='totalQty'?'total qty':'value'}:`,cur);if(v===null)return;const val=field==='price'?parseFloat(v):parseInt(v);if(isNaN(val)||val<=0){showToast('Invalid!','warn');return}const updates={[field]:val};if(field==='totalQty'){const snap=await getDocs(query(userCol('stock_codes')));const d=snap.docs.find(d=>d.id===id)?.data();if(d){updates.remainingQty=val-(d.soldQty||0);if(updates.remainingQty<0){showToast('New qty less than sold!','warn');return}}}try{await updateDoc(userDoc('stock_codes',id),updates);showToast('✅ Updated!')}catch(e){showToast('Error','err')}};
+
+window.toggleToken=()=>{const inp=document.getElementById('pageToken'),btn=document.querySelector('.btn-show');if(inp.type==='password'){inp.type='text';btn.textContent='Hide'}else{inp.type='password';btn.textContent='Show'}};
+window.clearSettingsForm=()=>{['shopName','pageId','pageToken'].forEach(id=>document.getElementById(id).value='');document.getElementById('pollInterval').value='5';document.getElementById('settingsStatusCard').className='status-card'};
+window.testAndSave=async()=>{const shopName=document.getElementById('shopName').value.trim(),pageId=document.getElementById('pageId').value.trim(),token=document.getElementById('pageToken').value.trim(),interval=parseInt(document.getElementById('pollInterval').value);if(!shopName||!pageId||!token){showToast('Fill all fields!','warn');return}const card=document.getElementById('settingsStatusCard');card.className='status-card show testing';document.getElementById('settingsStatusTitle').textContent='🔌 Testing...';try{const res=await fetch(`https://graph.facebook.com/v25.0/${pageId}?fields=name,id&access_token=${token}`),data=await res.json();if(data.error){card.className='status-card show fail';document.getElementById('settingsStatusTitle').textContent='❌ Failed';document.getElementById('settingsStatusInfo').innerHTML=`<div><div class="info-label">Error</div><div class="info-value red">${data.error.message}</div></div>`;showToast('Connection failed!','err');return}card.className='status-card show ok';document.getElementById('settingsStatusTitle').textContent='✅ Connected!';document.getElementById('settingsStatusInfo').innerHTML=`<div><div class="info-label">Page Name</div><div class="info-value green">${data.name}</div></div><div><div class="info-label">Page ID</div><div class="info-value">${data.id}</div></div>`;const docRef=await addDoc(userCol('fb_profiles'),{shopName,pageId,pageToken:token,pageName:data.name,pollInterval:interval,createdAt:serverTimestamp()});await setActiveProfileFn(docRef.id);showToast('✅ Saved!');clearSettingsForm()}catch(e){card.className='status-card show fail';document.getElementById('settingsStatusTitle').textContent='❌ Error';showToast('Error: '+e.message,'err')}};
+window.setActiveProfile=async id=>setActiveProfileFn(id);
+async function setActiveProfileFn(id){activeProfileId=id;const pfx=currentUser?.sellerId||'admin';localStorage.setItem('ap_'+pfx,id);await setDoc(userSettingsDoc('active'),{profileId:id,updatedAt:serverTimestamp()});renderProfiles();showToast('✅ Active page set!')}
+window.deleteProfile=async id=>{if(!confirm('Delete this profile?'))return;try{await deleteDoc(userDoc('fb_profiles',id));if(activeProfileId===id)activeProfileId=null;showToast('Deleted!')}catch(e){showToast('Error','err')}};
+function renderProfiles(){const container=document.getElementById('profilesList');if(allProfiles.length===0){container.innerHTML='<div style="font-family:Geist Mono,monospace;font-size:.78rem;color:var(--muted);padding:20px;text-align:center">No pages saved yet.</div>';return}container.innerHTML=allProfiles.map(p=>{const isActive=p.id===activeProfileId;return`<div class="profile-item ${isActive?'active-profile':''}"><div class="profile-avatar">${p.pageName?p.pageName.charAt(0).toUpperCase():'?'}</div><div style="flex:1"><div class="profile-name">${p.shopName} ${isActive?'<span class="profile-badge badge-active-p">● Active</span>':''}</div><div class="profile-id">${p.pageName} · ID: ${p.pageId}</div></div><div class="profile-actions">${!isActive?`<button class="btn-use" onclick="setActiveProfile('${p.id}')">Use</button>`:''}<button class="btn-del" onclick="deleteProfile('${p.id}')">✕</button></div></div>`}).join('')}
+
+window.previewLogo=(input)=>{const file=input.files[0];if(!file)return;if(file.size>500*1024){showToast('Logo too large! Max 500KB','warn');return}const reader=new FileReader();reader.onload=e=>{const prev=document.getElementById('logoPreview');prev.src=e.target.result;prev.classList.add('show')};reader.readAsDataURL(file)};
+window.saveShopProfile=async()=>{const name=document.getElementById('profileShopName').value.trim(),phone=document.getElementById('profilePhone').value.trim(),aba=document.getElementById('profileABA').value.trim(),aclida=document.getElementById('profileACLIDA').value.trim(),paperSize=document.getElementById('profilePaperSize').value;const logoEl=document.getElementById('logoPreview');const logo=logoEl.src&&logoEl.classList.contains('show')?logoEl.src:(shopProfile.logo||'');if(!name){showToast('Enter shop name!','warn');return}shopProfile={name,phone,aba,aclida,paperSize,logo};const pfx=currentUser?.sellerId||'admin';localStorage.setItem('sp_'+pfx,JSON.stringify(shopProfile));try{await setDoc(userSettingsDoc('shop_profile'),{name,phone,aba,aclida,paperSize,logo,updatedAt:serverTimestamp()});showToast('✅ Shop profile saved!','ok')}catch(e){showToast('Saved locally only','warn')}};
+function loadShopProfileUI(){if(!shopProfile.name)return;document.getElementById('profileShopName').value=shopProfile.name||'';document.getElementById('profilePhone').value=shopProfile.phone||'';document.getElementById('profileABA').value=shopProfile.aba||'';document.getElementById('profileACLIDA').value=shopProfile.aclida||'';if(shopProfile.paperSize)document.getElementById('profilePaperSize').value=shopProfile.paperSize;if(shopProfile.logo){const prev=document.getElementById('logoPreview');prev.src=shopProfile.logo;prev.classList.add('show')}}
+
+let detectedLive=null,activeLiveId=null,activeProfileData=null;
+async function loadActiveProfileData(){try{const s=await getDoc(userSettingsDoc('active'));if(!s.exists())return null;const p=await getDoc(userDoc('fb_profiles',s.data().profileId));if(!p.exists())return null;return p.data()}catch(e){return null}}
+window.openLiveModeModal=async()=>{const liveSnap=await getDoc(userSettingsDoc('live_mode'));if(liveSnap.exists()&&liveSnap.data().active){if(confirm('Live Mode is already active. Stop it?'))await stopLiveMode();return}document.getElementById('liveDetectStatus').textContent='Click "Detect Live" to find your active Facebook Live.';document.getElementById('liveDetectResult').style.display='none';document.getElementById('btnConfirmLive').style.display='none';document.getElementById('btnDetectLive').style.display='block';document.getElementById('liveModeModal').classList.add('show')};
+window.closeLiveModeModal=()=>{document.getElementById('liveModeModal').classList.remove('show');detectedLive=null};
+window.detectLiveVideo=async()=>{document.getElementById('liveDetectStatus').textContent='🔍 Loading profile...';document.getElementById('btnDetectLive').disabled=true;activeProfileData=await loadActiveProfileData();if(!activeProfileData){document.getElementById('liveDetectStatus').textContent='⚠️ No active page set! Go to Settings first.';document.getElementById('btnDetectLive').disabled=false;return}document.getElementById('liveDetectStatus').textContent='🔍 Detecting live video...';try{const res=await fetch(`https://graph.facebook.com/v25.0/${activeProfileData.pageId}/live_videos?fields=id,title,status,created_time,post_id&limit=5&access_token=${activeProfileData.pageToken}`),data=await res.json();if(data.error){document.getElementById('liveDetectStatus').textContent='❌ Error: '+data.error.message;document.getElementById('btnDetectLive').disabled=false;return}const lives=data.data||[],live=lives.find(v=>v.status==='LIVE')||lives[0];if(!live){document.getElementById('liveDetectStatus').textContent='⚠️ No live video found. Start a Facebook Live first!';document.getElementById('btnDetectLive').disabled=false;return}detectedLive=live;document.getElementById('liveDetectStatus').textContent='✅ Live video detected! Confirm to start Live Mode.';document.getElementById('liveDetectResult').style.display='block';document.getElementById('liveDetectResult').innerHTML=`<div style="color:var(--green);font-weight:600;margin-bottom:6px">🔴 LIVE DETECTED</div><div>📺 ${live.title||'Untitled'}</div><div>🆔 ${live.id}</div><div>📄 ${live.status}</div>`;document.getElementById('btnDetectLive').style.display='none';document.getElementById('btnConfirmLive').style.display='block'}catch(e){document.getElementById('liveDetectStatus').textContent='❌ Error: '+e.message;document.getElementById('btnDetectLive').disabled=false}};
+window.confirmLiveMode=async()=>{
+  if(!detectedLive)return;
+  try{
+    const liveTitle=(detectedLive.title&&detectedLive.title.trim())?detectedLive.title.trim():'Live '+new Date().toLocaleTimeString();
+    let livePostId='';
+    try{
+      const r=await fetch(`https://graph.facebook.com/v25.0/${detectedLive.id}?fields=post_id&access_token=${activeProfileData.pageToken}`);
+      const d=await r.json();
+      livePostId=d.post_id||'';
+    }catch(e){}
+    await setDoc(userSettingsDoc('live_mode'),{
+      active:true,liveVideoId:detectedLive.id,livePostId,
+      liveTitle,startedAt:serverTimestamp(),pageId:activeProfileData.pageId
+    });
+    activeLiveId=detectedLive.id;
+    closeLiveModeModal();
+    showToast('🟢 Live Connected!','ok');
+    updateLiveModeUI(true,liveTitle);
+  }catch(e){showToast('Error: '+e.message,'err')}
+};
+window.stopLiveMode=async()=>{try{await setDoc(userSettingsDoc('live_mode'),{active:false,liveVideoId:null,stoppedAt:serverTimestamp()});activeLiveId=null;showToast('⏹ Live Mode stopped','warn');updateLiveModeUI(false,'')}catch(e){showToast('Error: '+e.message,'err')}};
+function updateLiveModeUI(isLive,title){const btn=document.getElementById('btnLiveMode'),bar=document.getElementById('liveStatusBar'),txt=document.getElementById('liveStatusText');if(isLive){btn.textContent='🟢 Live Connected';btn.className='btn-live-mode on';bar.className='live-status-bar show';txt.textContent=`🔴 Live Mode Active — ${title}`}else{btn.textContent='🔴 Start Live';btn.className='btn-live-mode';bar.className='live-status-bar'}}
+
+// Auto-restore session on page refresh
+(function(){
+  try {
+    const savedSession = sessionStorage.getItem('liveorder_session');
+    if (savedSession) {
+      const session = JSON.parse(savedSession);
+      // Check session timeout (8 hours)
+      const SESSION_TIMEOUT = 8 * 60 * 60 * 1000;
+      const loginAt = session.loginAt || 0;
+      if (Date.now() - loginAt > SESSION_TIMEOUT) {
+        sessionStorage.removeItem('liveorder_session');
+        document.getElementById('loginScreen').style.display = 'flex';
+        return;
+      }
+      if (session.role === 'admin') {
+        currentUser = session;
+        startAdminSession();
+      } else if (session.role === 'seller') {
+        const expiry = new Date(session.expiresAt);
+        if (new Date() > expiry) {
+          sessionStorage.removeItem('liveorder_session');
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('expiredScreen').style.display = 'flex';
+        } else {
+          currentUser = {...session, expiresAt: expiry};
+          startSellerSession();
+        }
+      } else {
+        sessionStorage.removeItem('liveorder_session');
+        document.getElementById('loginScreen').style.display = 'flex';
+      }
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex';
+    }
+  } catch(e) {
+    sessionStorage.removeItem('liveorder_session');
+    document.getElementById('loginScreen').style.display = 'flex';
+  }
+})();
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAddModal();if(e.key==='Enter'&&document.getElementById('addModal').classList.contains('show'))addManualOrder()});
+</script>
+</body>
+</html>
